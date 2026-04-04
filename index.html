@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 让网页在手机上也能正常显示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DeepSeek 聊天助手</title>
+    <style>
+        /* 一些基础的样式，让界面看起来更整洁 */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            max-width: 800px;
+            width: 100%;
+            height: 85vh;
+            background-color: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .settings-area {
+            padding: 15px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        #apiKeyInput {
+            flex: 2;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 30px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+        #apiKeyInput:focus {
+            border-color: #0f172a;
+        }
+        #saveKeyBtn {
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #saveKeyBtn:active { transform: scale(0.96); }
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+        .user-message {
+            align-items: flex-end;
+            align-self: flex-end;
+        }
+        .assistant-message {
+            align-items: flex-start;
+            align-self: flex-start;
+        }
+        .bubble {
+            padding: 12px 18px;
+            border-radius: 24px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .user-message .bubble {
+            background-color: #0f172a;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .assistant-message .bubble {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            border-bottom-left-radius: 4px;
+        }
+        .timestamp {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 5px;
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+        .input-area {
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+        #userInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+        }
+        #sendBtn {
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            width: 50px;
+            border-radius: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #sendBtn:active { transform: scale(0.96); }
+        #sendBtn:disabled, #saveKeyBtn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .loading {
+            color: #64748b;
+            font-style: italic;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- 在这里输入你的API Key -->
+    <div class="settings-area">
+        <input type="password" id="apiKeyInput" placeholder="粘贴你的 DeepSeek API Key (格式: sk-...)" autocomplete="off">
+        <button id="saveKeyBtn">保存 Key</button>
+    </div>
+
+    <!-- 聊天消息会显示在这里 -->
+    <div class="messages-area" id="messagesArea">
+        <div class="message assistant-message">
+            <div class="bubble">你好！我已经准备好啦。<br>请在顶部粘贴你的 API Key 并点击保存，然后就可以开始对话了。</div>
+            <div class="timestamp"></div>
+        </div>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="input-area">
+        <textarea id="userInput" rows="1" placeholder="输入你的问题... (Shift+Enter 换行, Enter 发送)"></textarea>
+        <button id="sendBtn">➤</button>
+    </div>
+</div>
+
+<script>
+    // --- 获取页面元素 ---
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveKeyBtn = document.getElementById('saveKeyBtn');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const messagesArea = document.getElementById('messagesArea');
+
+    let currentApiKey = '';
+
+    // --- 辅助函数：在聊天区域添加一条消息 ---
+    function addMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message`;
+        
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'bubble';
+        // 简单处理一下内容中的换行符
+        bubbleDiv.innerText = content;
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'timestamp';
+        timeDiv.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+        
+        messageDiv.appendChild(bubbleDiv);
+        messageDiv.appendChild(timeDiv);
+        messagesArea.appendChild(messageDiv);
+        // 自动滚动到底部
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // --- 辅助函数：显示“AI正在输入...”的指示器 ---
+    function showTypingIndicator() {
+        const indicatorDiv = document.createElement('div');
+        indicatorDiv.id = 'typingIndicator';
+        indicatorDiv.className = 'message assistant-message';
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'bubble loading';
+        bubbleDiv.innerText = '思考中...';
+        indicatorDiv.appendChild(bubbleDiv);
+        messagesArea.appendChild(indicatorDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) indicator.remove();
+    }
+
+    // --- 核心功能：调用 DeepSeek API ---
+    async function callDeepSeekAPI(userQuestion) {
+        if (!currentApiKey) {
+            addMessage('assistant', '❌ 请先在顶部粘贴并保存你的 API Key。');
+            return;
+        }
+
+        // 显示用户的消息
+        addMessage('user', userQuestion);
+        // 清空输入框
+        userInput.value = '';
+        // 显示“思考中...”的提示
+        showTypingIndicator();
+
+        // 禁用发送按钮，防止重复发送
+        sendBtn.disabled = true;
+        saveKeyBtn.disabled = true;
+
+        const apiUrl = 'https://api.deepseek.com/chat/completions';
+        // 构建请求体，这里可以调整 model 参数，例如 'deepseek-reasoner' 是深度思考模型
+        const requestBody = {
+            model: 'deepseek-chat', // 非思考模式，速度更快。可改为 'deepseek-reasoner'
+            messages: [
+                { role: 'system', content: '你是一个乐于助人的AI助手，请用中文回答问题。' },
+                { role: 'user', content: userQuestion }
+            ],
+            stream: false
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentApiKey}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            removeTypingIndicator();
+
+            if (!response.ok) {
+                let errorDetail = `HTTP 错误 ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorDetail = errorData.error?.message || JSON.stringify(errorData);
+                } catch(e) { /* 忽略解析错误 */ }
+                throw new Error(`API 调用失败: ${errorDetail}`);
+            }
+
+            const data = await response.json();
+            // 从返回的数据中提取 AI 的回答
+            const assistantReply = data.choices[0].message.content;
+            addMessage('assistant', assistantReply);
+
+        } catch (error) {
+            console.error('调用 API 时出错:', error);
+            removeTypingIndicator();
+            addMessage('assistant', `😵 出错了: ${error.message}\n\n请检查你的 API Key 是否正确，或者网络是否通畅。`);
+        } finally {
+            // 重新启用按钮
+            sendBtn.disabled = false;
+            saveKeyBtn.disabled = false;
+            // 让输入框重新获得焦点
+            userInput.focus();
+        }
+    }
+
+    // --- 保存 API Key 的逻辑 ---
+    function saveApiKey() {
+        const key = apiKeyInput.value.trim();
+        if (key && key.startsWith('sk-')) {
+            currentApiKey = key;
+            // 使用 localStorage 将 Key 保存在浏览器中，下次打开页面无需重复输入
+            localStorage.setItem('deepseek_api_key', key);
+            addMessage('assistant', '✅ API Key 已保存并生效，现在可以开始对话了！');
+            apiKeyInput.value = ''; // 清空输入框，显得干净
+        } else {
+            alert('请输入以 sk- 开头的有效 API Key');
+        }
+    }
+
+    // --- 页面加载时，尝试从 localStorage 读取之前保存的 Key ---
+    function loadSavedKey() {
+        const savedKey = localStorage.getItem('deepseek_api_key');
+        if (savedKey && savedKey.startsWith('sk-')) {
+            currentApiKey = savedKey;
+            addMessage('assistant', '🔑 已自动加载你之前保存的 API Key，可以直接提问啦！');
+        }
+    }
+
+    // --- 事件绑定 ---
+    saveKeyBtn.addEventListener('click', saveApiKey);
+    sendBtn.addEventListener('click', () => {
+        const question = userInput.value.trim();
+        if (question) {
+            callDeepSeekAPI(question);
+        }
+    });
+
+    // 支持在输入框按 Enter 键发送（Shift+Enter 换行）
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // 阻止默认的换行行为
+            const question = userInput.value.trim();
+            if (question) {
+                callDeepSeekAPI(question);
+            }
+        }
+    });
+
+    // 初始化：加载保存的 Key 并聚焦输入框
+    loadSavedKey();
+    userInput.focus();
+</script>
+</body>
+</html>
