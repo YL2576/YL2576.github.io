@@ -463,7 +463,7 @@ async function sendMessage() {
         }
     } catch (err) {
         removeTypingIndicator();
-        addSystemMessage('❌ 调用失败: ' + err.message);
+        alert('API 出错：' + err.message);
         conversationHistory.pop();
         saveHistory();
         renderAllMessages();
