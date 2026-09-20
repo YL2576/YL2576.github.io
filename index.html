@@ -1,436 +1,180 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>DeepSeek 角色扮演 · 官方风格</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<title>DeepSeek 角色扮演</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #f7f8fa;
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
-        }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: #f7f8fa;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
 
-        /* ========== 侧边栏 ========== */
-        .sidebar {
-            width: 280px;
-            background: #ffffff;
-            border-right: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease;
-            z-index: 20;
-        }
+/* ========== 侧边栏 ========== */
+.sidebar {
+    width: 300px;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease;
+    z-index: 20;
+    overflow-y: auto;
+}
 
-        .sidebar-header {
-            padding: 20px 16px;
-            border-bottom: 1px solid #e5e7eb;
-        }
+.sidebar-header {
+    padding: 20px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.sidebar-header h2 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+.sidebar-header p { font-size: 12px; color: #6b7280; }
 
-        .sidebar-header h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 4px;
-        }
+.sidebar-section { padding: 16px; border-bottom: 1px solid #f0f0f0; }
+.section-title { font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 10px; }
 
-        .sidebar-header p {
-            font-size: 12px;
-            color: #6b7280;
-        }
+.api-row { display: flex; gap: 8px; margin-bottom: 12px; }
+#apiKeyInput {
+    flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 12px;
+    font-size: 13px; outline: none; background: #f9fafb;
+}
+#apiKeyInput:focus { border-color: #3b82f6; background: white; }
+.btn-primary {
+    background: #3b82f6; color: white; border: none; padding: 0 16px;
+    border-radius: 12px; font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.btn-primary:active { transform: scale(0.97); }
 
-        .sidebar-section {
-            padding: 16px;
-            border-bottom: 1px solid #f0f0f0;
-        }
+.model-select, .setting-textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 12px;
+    font-size: 13px; background: #f9fafb; margin-bottom: 12px;
+    font-family: inherit; resize: vertical;
+}
+.setting-textarea { min-height: 90px; line-height: 1.5; }
 
-        .section-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: #6b7280;
-            margin-bottom: 12px;
-        }
+.temp-control { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.temp-control span { font-size: 13px; color: #374151; }
+#tempSlider { flex: 1; height: 4px; border-radius: 2px; background: #e5e7eb; }
+.temp-value { font-size: 13px; color: #3b82f6; font-weight: 500; min-width: 40px; }
 
-        .api-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
+.expert-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
+.expert-btn {
+    flex: 1; padding: 8px 0; border: 1px solid #e5e7eb; border-radius: 30px;
+    background: #f9fafb; font-size: 12px; cursor: pointer; transition: all 0.2s;
+}
+.expert-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
 
-        #apiKeyInput {
-            flex: 1;
-            padding: 10px 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 13px;
-            outline: none;
-            background: #f9fafb;
-        }
+.action-buttons { display: flex; gap: 8px; }
+.action-btn {
+    flex: 1; padding: 8px 0; border: none; border-radius: 12px;
+    font-size: 13px; cursor: pointer; background: #f3f4f6; color: #374151;
+}
+.action-btn.danger { background: #fee2e2; color: #dc2626; }
 
-        #apiKeyInput:focus {
-            border-color: #3b82f6;
-            background: white;
-        }
+.bg-controls { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.bg-controls input[type="color"] { width: 40px; height: 34px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; }
+.bg-controls input[type="text"] {
+    flex: 1; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 12px;
+}
 
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 0 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-        }
+.sidebar-footer {
+    margin-top: auto; padding: 16px; border-top: 1px solid #e5e7eb;
+    font-size: 11px; color: #9ca3af; text-align: center;
+}
 
-        .btn-primary:active { transform: scale(0.97); }
+/* ========== 主聊天区域 ========== */
+.main { flex: 1; display: flex; flex-direction: column; background: #ffffff; position: relative; }
 
-        .model-select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 13px;
-            background: #f9fafb;
-            margin-bottom: 16px;
-        }
+.mobile-menu-btn {
+    display: none; position: fixed; top: 16px; left: 16px; width: 40px; height: 40px;
+    background: white; border: 1px solid #e5e7eb; border-radius: 12px; font-size: 20px;
+    cursor: pointer; z-index: 30; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
 
-        .temp-control {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
+.chat-header { padding: 16px 24px; border-bottom: 1px solid #e5e7eb; background: white; }
+.chat-header h1 { font-size: 18px; font-weight: 600; color: #1f2937; }
 
-        .temp-control span { font-size: 13px; color: #374151; }
+.messages-area {
+    flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column;
+}
 
-        #tempSlider {
-            flex: 1;
-            height: 4px;
-            border-radius: 2px;
-            background: #e5e7eb;
-        }
+/* ===== 左右布局、去头像 ===== */
+.message { display: flex; width: 100%; margin-bottom: 16px; }
+.user-message { justify-content: flex-end; }
+.assistant-message { justify-content: flex-start; }
 
-        .temp-value {
-            font-size: 13px;
-            color: #3b82f6;
-            font-weight: 500;
-            min-width: 40px;
-        }
+.message-content { max-width: 78%; display: flex; flex-direction: column; }
 
-        .expert-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
+.message-bubble {
+    padding: 10px 14px; border-radius: 18px; line-height: 1.5; font-size: 15px;
+    word-wrap: break-word; white-space: pre-wrap;
+}
+.user-message .message-bubble {
+    background: #3b82f6; color: white; border-bottom-right-radius: 4px;
+}
+.assistant-message .message-bubble {
+    background: #f3f4f6; color: #1f2937; border-bottom-left-radius: 4px;
+}
 
-        .expert-btn {
-            flex: 1;
-            padding: 8px 0;
-            border: 1px solid #e5e7eb;
-            border-radius: 30px;
-            background: #f9fafb;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+.reasoning-block {
+    margin-bottom: 8px; background: #fefce8; border-left: 3px solid #eab308;
+    border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #854d0e;
+    max-width: 100%;
+}
+.timestamp { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+.user-message .timestamp { text-align: right; }
+.assistant-message .timestamp { text-align: left; }
 
-        .expert-btn.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
+/* ===== 消息操作按钮 ===== */
+.msg-actions { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+.msg-action-btn {
+    background: none; border: 1px solid #e5e7eb; border-radius: 20px;
+    padding: 4px 12px; font-size: 13px; cursor: pointer; color: #6b7280;
+}
+.msg-action-btn:active { background: #f3f4f6; }
+.variant-nav { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 6px; }
+.variant-nav button {
+    background: none; border: 1px solid #e5e7eb; border-radius: 50%;
+    width: 24px; height: 24px; cursor: pointer; font-size: 13px; color: #6b7280;
+}
 
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
+/* ===== 输入区 ===== */
+.input-area { padding: 16px; border-top: 1px solid #e5e7eb; background: white; }
+.input-container { max-width: 800px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; }
 
-        .action-btn {
-            flex: 1;
-            padding: 8px 0;
-            border: none;
-            border-radius: 12px;
-            font-size: 13px;
-            cursor: pointer;
-            background: #f3f4f6;
-            color: #374151;
-        }
+#userInput {
+    flex: 1; padding: 12px 18px; border: 1px solid #e5e7eb; border-radius: 24px;
+    font-size: 15px; font-family: inherit; resize: none; outline: none;
+    max-height: 120px; background: #f9fafb;
+}
+#userInput:focus { border-color: #3b82f6; background: white; }
 
-        .action-btn.danger {
-            background: #fee2e2;
-            color: #dc2626;
-        }
+.send-btn {
+    width: 44px; height: 44px; background: #3b82f6; border: none; border-radius: 24px;
+    color: white; font-size: 18px; cursor: pointer; flex-shrink: 0;
+}
+.send-btn:disabled { opacity: 0.5; }
 
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 16px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 11px;
-            color: #9ca3af;
-            text-align: center;
-        }
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .sidebar { position: fixed; left: 0; top: 0; height: 100%; transform: translateX(-100%); box-shadow: 2px 0 12px rgba(0,0,0,0.1); }
+    .sidebar.open { transform: translateX(0); }
+    .mobile-menu-btn { display: flex; }
+    .chat-header { padding-left: 70px; }
+    .message-content { max-width: 85%; }
+}
 
-        /* ========== 主聊天区域 ========== */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #ffffff;
-            position: relative;
-        }
-
-        /* 移动端菜单按钮（默认隐藏） */
-        .mobile-menu-btn {
-            display: none;
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            width: 40px;
-            height: 40px;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 30;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .chat-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid #e5e7eb;
-            background: white;
-        }
-
-        .chat-header h1 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .message {
-            display: flex;
-            gap: 16px;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .user-message .message-avatar {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .assistant-message .message-avatar {
-            background: #10b981;
-            color: white;
-        }
-
-        .message-content {
-            flex: 1;
-        }
-
-        .message-bubble {
-            padding: 12px 16px;
-            border-radius: 16px;
-            line-height: 1.5;
-            font-size: 15px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-
-        .user-message .message-bubble {
-            background: #f3f4f6;
-            color: #1f2937;
-        }
-
-        .assistant-message .message-bubble {
-            background: #ffffff;
-            color: #1f2937;
-        }
-
-        .reasoning-block {
-            margin-bottom: 12px;
-            background: #fefce8;
-            border-left: 3px solid #eab308;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #854d0e;
-        }
-
-        .timestamp {
-            font-size: 11px;
-            color: #9ca3af;
-            margin-top: 6px;
-        }
-
-        /* 输入区域 */
-        .input-area {
-            padding: 20px 24px;
-            border-top: 1px solid #e5e7eb;
-            background: white;
-        }
-
-        .input-container {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-        }
-
-        .file-upload-wrapper {
-            position: relative;
-        }
-
-        .file-btn {
-            width: 44px;
-            height: 44px;
-            background: #f3f4f6;
-            border: none;
-            border-radius: 24px;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #fileInput {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            left: 0;
-            top: 0;
-            cursor: pointer;
-        }
-
-        #userInput {
-            flex: 1;
-            padding: 12px 18px;
-            border: 1px solid #e5e7eb;
-            border-radius: 24px;
-            font-size: 15px;
-            font-family: inherit;
-            resize: none;
-            outline: none;
-            max-height: 120px;
-            background: #f9fafb;
-        }
-
-        #userInput:focus {
-            border-color: #3b82f6;
-            background: white;
-        }
-
-        .send-btn {
-            width: 44px;
-            height: 44px;
-            background: #3b82f6;
-            border: none;
-            border-radius: 24px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .send-btn:disabled {
-            opacity: 0.5;
-        }
-
-        .file-preview {
-            max-width: 800px;
-            margin: 0 auto 12px auto;
-            font-size: 12px;
-            color: #6b7280;
-            background: #f3f4f6;
-            padding: 8px 12px;
-            border-radius: 12px;
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100%;
-                transform: translateX(-100%);
-                box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .mobile-menu-btn {
-                display: flex;
-            }
-            .chat-header {
-                padding-left: 70px;
-            }
-            .messages-area {
-                padding: 16px;
-            }
-            .message {
-                gap: 10px;
-            }
-        }
-
-        .loading {
-            display: flex;
-            gap: 8px;
-            padding: 12px 16px;
-            color: #6b7280;
-        }
-
-        .loading span {
-            width: 8px;
-            height: 8px;
-            background: #9ca3af;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .loading span:nth-child(1) { animation-delay: -0.32s; }
-        .loading span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-    </style>
+.loading { display: flex; gap: 8px; padding: 12px 16px; color: #6b7280; }
+.loading span { width: 8px; height: 8px; background: #9ca3af; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+.loading span:nth-child(1) { animation-delay: -0.32s; }
+.loading span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+</style>
 </head>
 <body>
 
@@ -439,7 +183,7 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2>🎭 角色扮演</h2>
-        <p>DeepSeek-V4</p>
+        <p>DeepSeek</p>
     </div>
 
     <div class="sidebar-section">
@@ -451,15 +195,25 @@
     </div>
 
     <div class="sidebar-section">
+        <div class="section-title">固定设定（永不改动，走缓存）</div>
+        <textarea id="fixedSetting" class="setting-textarea" placeholder="把你的人物设定、世界观、规则粘贴到这里。一次填好，以后不用再管。"></textarea>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="section-title">动态设定（随时追加新角色）</div>
+        <textarea id="dynamicSetting" class="setting-textarea" placeholder="中途新增的角色、设定写这里。可以随时追加。"></textarea>
+    </div>
+
+    <div class="sidebar-section">
         <div class="section-title">模型设置</div>
         <select id="modelSelect" class="model-select">
-            <option value="deepseek-v4-flash">🚀 经济模式 (V4-Flash)</option>
-            <option value="deepseek-v4-pro">🔥 旗舰模式 (V4-Pro)</option>
+            <option value="deepseek-chat">💬 对话模式 (deepseek-chat)</option>
+            <option value="deepseek-reasoner">🧠 推理模式 (deepseek-reasoner)</option>
         </select>
         <div class="temp-control">
             <span>🌡️ 温度</span>
-            <input type="range" id="tempSlider" min="0" max="2" step="0.05" value="1.3">
-            <span id="tempValue" class="temp-value">1.30</span>
+            <input type="range" id="tempSlider" min="0" max="2" step="0.05" value="0.9">
+            <span id="tempValue" class="temp-value">0.90</span>
         </div>
     </div>
 
@@ -467,372 +221,510 @@
         <div class="section-title">专家模式</div>
         <div class="expert-buttons">
             <button id="roleplayModeBtn" class="expert-btn">🎭 角色沉浸</button>
-            <button id="analysisModeBtn" class="expert-btn">📐 纯分析</button>
             <button id="normalModeBtn" class="expert-btn">✖️ 关闭</button>
         </div>
     </div>
 
     <div class="sidebar-section">
+        <div class="section-title">背景</div>
+        <div class="bg-controls">
+            <input type="color" id="bgColorPicker" value="#f7f8fa">
+            <input type="text" id="bgImageUrl" placeholder="或填图片URL">
+        </div>
+        <button id="applyBgBtn" class="action-btn" style="width:100%;">应用背景</button>
+        <button id="resetBgBtn" class="action-btn" style="width:100%; margin-top:6px;">恢复默认</button>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="section-title">剧情摘要（自动生成）</div>
+        <textarea id="storySummary" class="setting-textarea" placeholder="每30条自动生成，也可手动编辑。"></textarea>
+        <button id="genSummaryBtn" class="action-btn" style="width:100%;">立即生成摘要</button>
+    </div>
+
+    <div class="sidebar-section">
         <div class="section-title">工具</div>
         <div class="action-buttons">
-            <button id="exportChatBtn" class="action-btn">📥 导出记录</button>
+            <button id="exportChatBtn" class="action-btn">📥 导出</button>
             <button id="clearChatBtn" class="action-btn danger">🗑️ 新对话</button>
         </div>
     </div>
 
-    <div class="sidebar-footer">
-        🔒 数据仅存本地
-    </div>
+    <div class="sidebar-footer">🔒 数据仅存本地</div>
 </div>
 
 <div class="main">
-    <div class="chat-header">
-        <h1>DeepSeek 角色扮演</h1>
-    </div>
-
+    <div class="chat-header"><h1>DeepSeek 角色扮演</h1></div>
     <div class="messages-area" id="messagesArea"></div>
 
     <div class="input-area">
-        <div style="max-width:800px; margin:0 auto; width:100%;">
-            <div id="filePreview" class="file-preview" style="display:none;"></div>
-            <div class="input-container">
-                <div class="file-upload-wrapper">
-                    <button class="file-btn" id="fileBtn">📎</button>
-                    <input type="file" id="fileInput" accept=".txt,.md,.json,.png,.jpg,.jpeg,.pdf,.doc,.docx,.xls,.xlsx">
-                </div>
-                <textarea id="userInput" rows="1" placeholder="输入消息..."></textarea>
-                <button id="sendBtn" class="send-btn">➤</button>
-            </div>
+        <div class="input-container">
+            <textarea id="userInput" rows="1" placeholder="输入消息..."></textarea>
+            <button id="sendBtn" class="send-btn">➤</button>
         </div>
     </div>
 </div>
 
 <script>
-    // DOM 元素
-    const sidebar = document.getElementById('sidebar');
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const apiKeyInput = document.getElementById('apiKeyInput');
-    const saveKeyBtn = document.getElementById('saveKeyBtn');
-    const modelSelect = document.getElementById('modelSelect');
-    const tempSlider = document.getElementById('tempSlider');
-    const tempValue = document.getElementById('tempValue');
-    const roleplayBtn = document.getElementById('roleplayModeBtn');
-    const analysisBtn = document.getElementById('analysisModeBtn');
-    const normalBtn = document.getElementById('normalModeBtn');
-    const exportChatBtn = document.getElementById('exportChatBtn');
-    const clearChatBtn = document.getElementById('clearChatBtn');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const messagesArea = document.getElementById('messagesArea');
-    const fileInput = document.getElementById('fileInput');
-    const filePreview = document.getElementById('filePreview');
+// ===== DOM =====
+const sidebar = document.getElementById('sidebar');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const saveKeyBtn = document.getElementById('saveKeyBtn');
+const fixedSetting = document.getElementById('fixedSetting');
+const dynamicSetting = document.getElementById('dynamicSetting');
+const modelSelect = document.getElementById('modelSelect');
+const tempSlider = document.getElementById('tempSlider');
+const tempValue = document.getElementById('tempValue');
+const roleplayBtn = document.getElementById('roleplayModeBtn');
+const normalBtn = document.getElementById('normalModeBtn');
+const exportChatBtn = document.getElementById('exportChatBtn');
+const clearChatBtn = document.getElementById('clearChatBtn');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const messagesArea = document.getElementById('messagesArea');
+const storySummaryEl = document.getElementById('storySummary');
+const genSummaryBtn = document.getElementById('genSummaryBtn');
+const bgColorPicker = document.getElementById('bgColorPicker');
+const bgImageUrl = document.getElementById('bgImageUrl');
+const applyBgBtn = document.getElementById('applyBgBtn');
+const resetBgBtn = document.getElementById('resetBgBtn');
 
-    // 状态变量
-    let currentApiKey = '';
-    let conversationHistory = [];
-    let currentTemperature = 1.3;
-    let currentModel = 'deepseek-v4-flash';
-    let expertMode = null; // 'roleplay', 'analysis', null
-    let uploadedFileContent = null; // 存储上传的文件内容
+// ===== 状态 =====
+let currentApiKey = '';
+let conversationHistory = [];   // { role, variants: [], activeVariant, timestamp }
+let currentTemperature = 0.9;
+let currentModel = 'deepseek-chat';
+let expertMode = null;
+let storySummary = '';
+let isGenerating = false;
 
-    // 指令文本
-    const ROLEPLAY_INSTRUCTION = "〖角色沉浸要求〗你需要完全进入角色，以第一人称视角思考，用括号()或【】表示内心戏或动作细节，展现真实的情绪波动，不允许出现分析性语言。";
-    const ANALYSIS_INSTRUCTION = "〖思维模式要求〗你不需要进行角色内心戏。取而代之，你需要在括号中用冷静、客观的语言进行纯分析：规划剧情走向、拆解用户意图、设计符合角色设定的回应策略。禁止使用第一人称内心独白。";
+// ===== 存储键 =====
+const K = {
+    history: 'ds_rp_history',
+    api: 'ds_rp_api',
+    model: 'ds_rp_model',
+    temp: 'ds_rp_temp',
+    expert: 'ds_rp_expert',
+    fixed: 'ds_rp_fixed',
+    dynamic: 'ds_rp_dynamic',
+    summary: 'ds_rp_summary',
+    bg: 'ds_rp_bg'
+};
 
-    // 存储键名
-    const STORAGE_KEY_HISTORY = 'deepseek_official_history';
-    const STORAGE_KEY_API = 'deepseek_api_key';
-    const STORAGE_KEY_MODEL = 'deepseek_model';
-    const STORAGE_KEY_TEMP = 'deepseek_temp';
-    const STORAGE_KEY_EXPERT = 'deepseek_expert';
-
-    // 持久化函数
-    function saveHistory() { localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(conversationHistory)); }
-    function loadHistory() {
-        const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
-        if (saved) try { conversationHistory = JSON.parse(saved); } catch(e) { conversationHistory = []; }
-        else conversationHistory = [];
-    }
-    function saveModelPref() { localStorage.setItem(STORAGE_KEY_MODEL, currentModel); }
-    function loadModelPref() {
-        const saved = localStorage.getItem(STORAGE_KEY_MODEL);
-        if (saved === 'deepseek-v4-flash' || saved === 'deepseek-v4-pro') currentModel = saved;
-        else currentModel = 'deepseek-v4-flash';
-        modelSelect.value = currentModel;
-    }
-    function saveTempPref() { localStorage.setItem(STORAGE_KEY_TEMP, currentTemperature.toString()); }
-    function loadTempPref() {
-        const saved = localStorage.getItem(STORAGE_KEY_TEMP);
-        if (saved !== null) { let tmp = parseFloat(saved); if (!isNaN(tmp) && tmp>=0 && tmp<=2) currentTemperature = tmp; }
-        else currentTemperature = 1.3;
-        tempSlider.value = currentTemperature;
-        tempValue.innerText = currentTemperature.toFixed(2);
-    }
-    function saveExpertPref() { localStorage.setItem(STORAGE_KEY_EXPERT, expertMode || 'none'); }
-    function loadExpertPref() {
-        const saved = localStorage.getItem(STORAGE_KEY_EXPERT);
-        if (saved === 'roleplay') setExpertModeUI('roleplay');
-        else if (saved === 'analysis') setExpertModeUI('analysis');
-        else setExpertModeUI(null);
-    }
-    function setExpertModeUI(mode) {
-        expertMode = mode;
-        roleplayBtn.classList.remove('active');
-        analysisBtn.classList.remove('active');
-        if (mode === 'roleplay') roleplayBtn.classList.add('active');
-        else if (mode === 'analysis') analysisBtn.classList.add('active');
-        saveExpertPref();
-        addSystemMessage(mode === 'roleplay' ? '🎭 角色沉浸模式已开启' : (mode === 'analysis' ? '📐 纯分析模式已开启' : '专家模式已关闭'));
-    }
-
-    // UI 辅助函数
-    function addSystemMessage(content) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message assistant-message';
-        msgDiv.innerHTML = `<div class="message-avatar">🤖</div><div class="message-content"><div class="message-bubble" style="background:#f3f4f6; color:#6b7280; font-style:italic;">${escapeHtml(content)}</div></div>`;
-        messagesArea.appendChild(msgDiv);
-        messagesArea.scrollTop = messagesArea.scrollHeight;
-        setTimeout(() => msgDiv.remove(), 3000);
-    }
-
-    function escapeHtml(text) { return text.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
-
-    function appendMessageToDOM(role, content, timestamp, reasoning = null) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${role}-message`;
-        const avatar = role === 'user' ? '👤' : '🤖';
-        let innerHtml = `<div class="message-avatar">${avatar}</div><div class="message-content">`;
-        if (role === 'assistant' && reasoning) {
-            innerHtml += `<div class="reasoning-block"><strong>🧠 思考过程</strong><div>${escapeHtml(reasoning)}</div></div>`;
-        }
-        innerHtml += `<div class="message-bubble">${escapeHtml(content)}</div><div class="timestamp">${timestamp}</div></div>`;
-        messageDiv.innerHTML = innerHtml;
-        messagesArea.appendChild(messageDiv);
-        messagesArea.scrollTop = messagesArea.scrollHeight;
-    }
-
-    function addMessage(role, content, saveToHistory = true, timestamp = null, reasoning = null) {
-        const time = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
-        appendMessageToDOM(role, content, time, reasoning);
-        if (saveToHistory) {
-            conversationHistory.push({ role, content, timestamp: time, reasoning });
-            saveHistory();
-        }
-    }
-
-    function renderAllMessages() {
-        messagesArea.innerHTML = '';
-        for (const msg of conversationHistory) {
-            appendMessageToDOM(msg.role, msg.content, msg.timestamp, msg.reasoning);
-        }
-    }
-
-    function showTypingIndicator() {
-        const div = document.createElement('div');
-        div.id = 'typingIndicator';
-        div.className = 'message assistant-message';
-        div.innerHTML = `<div class="message-avatar">🤖</div><div class="message-content"><div class="loading"><span></span><span></span><span></span></div></div>`;
-        messagesArea.appendChild(div);
-        messagesArea.scrollTop = messagesArea.scrollHeight;
-    }
-    function removeTypingIndicator() { document.getElementById('typingIndicator')?.remove(); }
-    function disableButtons(disabled) {
-        sendBtn.disabled = disabled;
-        saveKeyBtn.disabled = disabled;
-    }
-
-    // 文件上传处理
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        filePreview.style.display = 'block';
-        filePreview.innerHTML = `📎 已选择: ${file.name} (${(file.size/1024).toFixed(1)} KB) <button id="clearFileBtn" style="margin-left:8px; background:none; border:none; color:#ef4444;">✖️</button>`;
-        document.getElementById('clearFileBtn')?.addEventListener('click', () => {
-            fileInput.value = '';
-            filePreview.style.display = 'none';
-            uploadedFileContent = null;
-        });
-        // 读取文件内容（简单文本类直接读取，图片等转为base64摘要）
-        if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.json')) {
-            const text = await file.text();
-            uploadedFileContent = `[文件内容: ${file.name}]\n${text.substring(0, 3000)}${text.length > 3000 ? '\n...(内容过长已截断)' : ''}`;
-        } else if (file.type.startsWith('image/')) {
-            uploadedFileContent = `[图片: ${file.name}] (DeepSeek-V4 支持图像识别，但需要多模态版本，当前作为文件标记)`;
-        } else {
-            uploadedFileContent = `[文件: ${file.name}] (如需解析具体内容，请使用文本格式)`;
-        }
+// ===== 存储 =====
+function saveHistory() { localStorage.setItem(K.history, JSON.stringify(conversationHistory)); }
+function loadHistory() {
+    const s = localStorage.getItem(K.history);
+    if (s) try { conversationHistory = JSON.parse(s); } catch(e) { conversationHistory = []; }
+    else conversationHistory = [];
+    // 兼容旧结构
+    conversationHistory = conversationHistory.map(m => {
+        if (m.variants) return m;
+        return { role: m.role, variants: [m.content], activeVariant: 0, timestamp: m.timestamp || '' };
     });
+}
+function getMsgContent(m) { return m.variants[m.activeVariant]; }
 
-    // 导出聊天记录
-    function exportChat() {
-        if (conversationHistory.length === 0) {
-            addSystemMessage('没有聊天记录可导出');
-            return;
-        }
-        let exportText = `DeepSeek 角色扮演对话记录\n导出时间: ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
-        for (const msg of conversationHistory) {
-            const roleName = msg.role === 'user' ? '👤 用户' : '🤖 AI';
-            exportText += `[${roleName}] ${msg.timestamp}\n${msg.content}\n\n`;
-            if (msg.reasoning) exportText += `[思考过程]\n${msg.reasoning}\n\n`;
-        }
-        const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `deepseek_chat_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.txt`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        addSystemMessage('✅ 聊天记录已导出');
+// ===== 系统提示词 =====
+const ROLEPLAY_INSTRUCTION = "〖角色沉浸要求〗完全进入角色，用()或【】表示动作、内心戏，展现真实情绪，不要分析性语言。";
+
+function buildSystemPrompt() {
+    let sys = '';
+    const fixed = fixedSetting.value.trim();
+    const dynamic = dynamicSetting.value.trim();
+    if (fixed) sys += fixed + '\n\n';
+    if (dynamic) sys += '【动态设定】\n' + dynamic + '\n\n';
+    if (storySummary) sys += '【前情提要】\n' + storySummary + '\n\n';
+    if (expertMode === 'roleplay') sys += ROLEPLAY_INSTRUCTION + '\n\n';
+    if (!sys) sys = '你是一个角色扮演者，严格按用户设定扮演角色。';
+    return sys;
+}
+
+// ===== 构建 API 消息（关键：只发选中版本 + 只发最近30条）=====
+function buildMessagesForAPI() {
+    const messages = [{ role: 'system', content: buildSystemPrompt() }];
+    const recent = conversationHistory.slice(-30);
+    for (const m of recent) {
+        messages.push({ role: m.role, content: getMsgContent(m) });
     }
+    return messages;
+}
 
-    // API 调用
-    async function callDeepSeekV4(userMessage) {
-        if (!currentApiKey) {
-            addSystemMessage('❌ 请先保存 API Key');
-            return;
+// ===== UI =====
+function escapeHtml(text) {
+    return String(text).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+}
+function scrollBottom() { messagesArea.scrollTop = messagesArea.scrollHeight; }
+
+function addSystemMessage(content) {
+    const div = document.createElement('div');
+    div.className = 'message assistant-message';
+    div.innerHTML = `<div class="message-content"><div class="message-bubble" style="background:#f3f4f6;color:#6b7280;font-style:italic;">${escapeHtml(content)}</div></div>`;
+    messagesArea.appendChild(div); scrollBottom();
+    setTimeout(() => div.remove(), 3000);
+}
+
+function appendMessageToDOM(msg, index) {
+    const role = msg.role;
+    const div = document.createElement('div');
+    div.className = `message ${role}-message`;
+    let inner = `<div class="message-content">`;
+    if (role === 'assistant' && msg.reasoning) {
+        inner += `<div class="reasoning-block"><strong>🧠 思考</strong><div>${escapeHtml(msg.reasoning)}</div></div>`;
+    }
+    inner += `<div class="message-bubble">${escapeHtml(getMsgContent(msg))}</div>`;
+    inner += `<div class="timestamp">${msg.timestamp || ''}</div>`;
+
+    // AI 消息底下的操作按钮
+    if (role === 'assistant') {
+        inner += `<div class="msg-actions">`;
+        inner += `<button class="msg-action-btn" data-action="regen" data-index="${index}">🔄 重新生成</button>`;
+        inner += `<button class="msg-action-btn" data-action="copy" data-index="${index}">📋</button>`;
+        if (msg.variants && msg.variants.length > 1) {
+            inner += `<div class="variant-nav">`;
+            inner += `<button data-action="prev" data-index="${index}">◀</button>`;
+            inner += `<span>${msg.activeVariant + 1}/${msg.variants.length}</span>`;
+            inner += `<button data-action="next" data-index="${index}">▶</button>`;
+            inner += `</div>`;
         }
-        let finalMessage = userMessage;
-        if (uploadedFileContent) {
-            finalMessage = `${userMessage}\n\n${uploadedFileContent}`;
-            uploadedFileContent = null;
-            fileInput.value = '';
-            filePreview.style.display = 'none';
-        }
-        if (expertMode === 'roleplay') finalMessage = `${finalMessage}\n\n${ROLEPLAY_INSTRUCTION}`;
-        else if (expertMode === 'analysis') finalMessage = `${finalMessage}\n\n${ANALYSIS_INSTRUCTION}`;
-        
-        addMessage('user', finalMessage, true);
-        userInput.value = '';
-        showTypingIndicator();
-        disableButtons(true);
+        inner += `</div>`;
+    }
+    inner += `</div>`;
+    div.innerHTML = inner;
+    messagesArea.appendChild(div);
+}
 
-        const messagesForAPI = [{ role: 'system', content: '你是专业角色扮演AI，性格鲜明，生动自然。' }];
-        for (const m of conversationHistory) messagesForAPI.push({ role: m.role, content: m.content });
+function renderAllMessages() {
+    messagesArea.innerHTML = '';
+    conversationHistory.forEach((m, i) => appendMessageToDOM(m, i));
+    scrollBottom();
+}
 
-        try {
-            const resp = await fetch('https://api.deepseek.com/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentApiKey}` },
-                body: JSON.stringify({ model: currentModel, messages: messagesForAPI, temperature: currentTemperature, stream: false })
-            });
-            removeTypingIndicator();
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const data = await resp.json();
-            const reply = data.choices[0].message.content;
-            const reasoning = data.choices[0].message.reasoning_content || null;
-            addMessage('assistant', reply, true, null, reasoning);
-        } catch (err) {
-            removeTypingIndicator();
-            addMessage('assistant', `❌ 调用失败: ${err.message}`, false);
-            conversationHistory.pop();
+function showTypingIndicator() {
+    const div = document.createElement('div');
+    div.id = 'typingIndicator';
+    div.className = 'message assistant-message';
+    div.innerHTML = `<div class="message-content"><div class="loading"><span></span><span></span><span></span></div></div>`;
+    messagesArea.appendChild(div); scrollBottom();
+}
+function removeTypingIndicator() { document.getElementById('typingIndicator')?.remove(); }
+function disableButtons(d) { sendBtn.disabled = d; }
+
+// ===== API 调用 =====
+async function callAPI() {
+    if (!currentApiKey) { addSystemMessage('❌ 请先保存 API Key'); return null; }
+    const resp = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentApiKey}` },
+        body: JSON.stringify({
+            model: currentModel,
+            messages: buildMessagesForAPI(),
+            temperature: currentTemperature,
+            stream: false
+        })
+    });
+    if (!resp.ok) {
+        const t = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${t}`);
+    }
+    const data = await resp.json();
+    return {
+        content: data.choices[0].message.content,
+        reasoning: data.choices[0].message.reasoning_content || null
+    };
+}
+
+// ===== 发送 =====
+async function sendMessage() {
+    const q = userInput.value.trim();
+    if (!q || isGenerating) return;
+    isGenerating = true;
+    userInput.value = '';
+    userInput.style.height = 'auto';
+
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    conversationHistory.push({ role: 'user', variants: [q], activeVariant: 0, timestamp: time });
+    saveHistory();
+    appendMessageToDOM(conversationHistory[conversationHistory.length - 1], conversationHistory.length - 1);
+    scrollBottom();
+
+    showTypingIndicator();
+    disableButtons(true);
+    try {
+        const res = await callAPI();
+        removeTypingIndicator();
+        if (res) {
+            conversationHistory.push({ role: 'assistant', variants: [res.content], activeVariant: 0, timestamp: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), reasoning: res.reasoning });
             saveHistory();
-            const lastUser = document.querySelectorAll('.user-message');
-            if (lastUser.length) lastUser[lastUser.length-1].remove();
-        } finally {
-            disableButtons(false);
-            userInput.focus();
+            appendMessageToDOM(conversationHistory[conversationHistory.length - 1], conversationHistory.length - 1);
+            scrollBottom();
+            // 每30条自动摘要
+            if (conversationHistory.length % 30 === 0) generateSummary();
         }
-    }
-
-    // 重新生成
-    async function regenerateLastReply() {
-        if (!currentApiKey) { addSystemMessage('请先保存 API Key'); return; }
-        if (conversationHistory.length < 2) { addSystemMessage('没有可重生的消息'); return; }
-        if (conversationHistory[conversationHistory.length-1].role !== 'assistant') { addSystemMessage('最后一条不是AI回复'); return; }
+    } catch (err) {
+        removeTypingIndicator();
+        addSystemMessage('❌ 调用失败: ' + err.message);
         conversationHistory.pop();
         saveHistory();
-        const lastAssistant = document.querySelectorAll('.assistant-message');
-        if (lastAssistant.length) lastAssistant[lastAssistant.length-1].remove();
-        const messagesForAPI = [{ role: 'system', content: '你是专业角色扮演AI，性格鲜明，生动自然。' }];
-        for (const m of conversationHistory) messagesForAPI.push({ role: m.role, content: m.content });
-        showTypingIndicator();
-        disableButtons(true);
-        try {
-            const resp = await fetch('https://api.deepseek.com/chat/completions', {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentApiKey}` },
-                body: JSON.stringify({ model: currentModel, messages: messagesForAPI, temperature: currentTemperature, stream: false })
-            });
-            removeTypingIndicator();
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const data = await resp.json();
-            addMessage('assistant', data.choices[0].message.content, true, null, data.choices[0].message.reasoning_content || null);
-        } catch (err) { removeTypingIndicator(); addMessage('assistant', `重答失败: ${err.message}`, false); }
-        finally { disableButtons(false); userInput.focus(); }
-    }
-
-    // 撤回
-    function undoLastUser() {
-        let lastUserIdx = -1;
-        for (let i=conversationHistory.length-1; i>=0; i--) if (conversationHistory[i].role === 'user') { lastUserIdx=i; break; }
-        if (lastUserIdx === -1) { addSystemMessage('没有可撤回的消息'); return; }
-        conversationHistory = conversationHistory.slice(0, lastUserIdx);
-        saveHistory();
         renderAllMessages();
-        addSystemMessage('✅ 已撤回上一条输入');
+    } finally {
+        isGenerating = false;
+        disableButtons(false);
+        userInput.focus();
     }
+}
 
-    function saveApiKey() {
-        const key = apiKeyInput.value.trim();
-        if (key && key.startsWith('sk-')) {
-            currentApiKey = key;
-            localStorage.setItem(STORAGE_KEY_API, key);
-            addSystemMessage('✅ API Key 已保存');
-            apiKeyInput.value = '';
-        } else alert('请输入有效的 API Key (以 sk- 开头)');
-    }
-
-    function newConversation() {
-        conversationHistory = [];
-        saveHistory();
-        messagesArea.innerHTML = '';
-        addMessage('assistant', '✨ 新对话已开始！点击左侧菜单可调整模型和专家模式。', false);
-    }
-
-    function loadInitialData() {
-        const savedKey = localStorage.getItem(STORAGE_KEY_API);
-        if (savedKey && savedKey.startsWith('sk-')) currentApiKey = savedKey;
-        loadHistory();
-        loadModelPref();
-        loadTempPref();
-        loadExpertPref();
-        if (conversationHistory.length === 0) {
-            addMessage('assistant', '🎭 欢迎使用 DeepSeek 角色扮演\n\n点击左侧「📥 导出记录」可保存对话\n点击「📎」可上传文件\n专家模式可切换角色沉浸/纯分析', false);
-        } else {
+// ===== 重新生成（保留旧版本）=====
+async function regenerateAt(index) {
+    const msg = conversationHistory[index];
+    if (!msg || msg.role !== 'assistant' || isGenerating) return;
+    isGenerating = true;
+    disableButtons(true);
+    // 临时截断到这条之前
+    const original = conversationHistory.slice();
+    const before = conversationHistory.slice(0, index);
+    const savedHistory = conversationHistory;
+    conversationHistory = before;
+    showTypingIndicator();
+    try {
+        const res = await callAPI();
+        removeTypingIndicator();
+        if (res) {
+            conversationHistory = savedHistory;
+            msg.variants.push(res.content);
+            msg.activeVariant = msg.variants.length - 1;
+            msg.reasoning = res.reasoning;
+            saveHistory();
             renderAllMessages();
         }
-        if (!currentApiKey) addSystemMessage('🔐 请点击左侧菜单，粘贴你的 API Key');
+    } catch (err) {
+        conversationHistory = savedHistory;
+        removeTypingIndicator();
+        addSystemMessage('❌ 重生成失败: ' + err.message);
+    } finally {
+        isGenerating = false;
+        disableButtons(false);
     }
+}
 
-    // 事件绑定
-    mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
-    saveKeyBtn.addEventListener('click', saveApiKey);
-    clearChatBtn.addEventListener('click', newConversation);
-    exportChatBtn.addEventListener('click', exportChat);
-    sendBtn.addEventListener('click', () => { const q = userInput.value.trim(); if (q) callDeepSeekV4(q); });
-    userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const q = userInput.value.trim(); if (q) callDeepSeekV4(q); } });
-    modelSelect.addEventListener('change', (e) => { currentModel = e.target.value; saveModelPref(); addSystemMessage(`模型已切换至 ${currentModel === 'deepseek-v4-pro' ? 'V4-Pro' : 'V4-Flash'}`); });
-    tempSlider.addEventListener('input', (e) => { currentTemperature = parseFloat(e.target.value); tempValue.innerText = currentTemperature.toFixed(2); saveTempPref(); });
-    roleplayBtn.addEventListener('click', () => setExpertModeUI('roleplay'));
-    analysisBtn.addEventListener('click', () => setExpertModeUI('analysis'));
-    normalBtn.addEventListener('click', () => setExpertModeUI(null));
+// ===== 消息按钮事件（委托）=====
+messagesArea.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.index);
+    const action = btn.dataset.action;
+    const msg = conversationHistory[idx];
+    if (!msg) return;
 
-    // 添加重答和撤回按钮到界面（简单起见，在底部加两个小按钮）
-    const inputContainer = document.querySelector('.input-container');
-    const actionExtra = document.createElement('div');
-    actionExtra.style.display = 'flex';
-    actionExtra.style.gap = '8px';
-    actionExtra.style.marginTop = '8px';
-    actionExtra.style.maxWidth = '800px';
-    actionExtra.style.margin = '8px auto 0 auto';
-    actionExtra.innerHTML = `
-        <button id="regenerateBtn" style="flex:1; padding:8px; background:#f3f4f6; border:none; border-radius:20px; font-size:13px; cursor:pointer;">🔄 重新生成</button>
-        <button id="undoMsgBtn" style="flex:1; padding:8px; background:#f3f4f6; border:none; border-radius:20px; font-size:13px; cursor:pointer;">↩️ 撤回上一条</button>
-    `;
-    document.querySelector('.input-area').appendChild(actionExtra);
-    document.getElementById('regenerateBtn').addEventListener('click', regenerateLastReply);
-    document.getElementById('undoMsgBtn').addEventListener('click', undoLastUser);
+    if (action === 'regen') regenerateAt(idx);
+    else if (action === 'copy') {
+        navigator.clipboard.writeText(getMsgContent(msg)).then(() => addSystemMessage('✅ 已复制'));
+    }
+    else if (action === 'prev' && msg.variants.length > 1) {
+        msg.activeVariant = (msg.activeVariant - 1 + msg.variants.length) % msg.variants.length;
+        saveHistory(); renderAllMessages();
+    }
+    else if (action === 'next' && msg.variants.length > 1) {
+        msg.activeVariant = (msg.activeVariant + 1) % msg.variants.length;
+        saveHistory(); renderAllMessages();
+    }
+});
 
-    loadInitialData();
-    userInput.focus();
+// ===== 剧情摘要 =====
+async function generateSummary() {
+    if (!currentApiKey) { addSystemMessage('请先保存 API Key'); return; }
+    if (conversationHistory.length < 10) { addSystemMessage('对话太短，不用摘要'); return; }
+    addSystemMessage('⏳ 正在生成剧情摘要...');
+    // 摘要范围：除了最近30条之外的所有内容
+    const toSum = conversationHistory.slice(0, -30);
+    if (toSum.length === 0) { addSystemMessage('还没到需要摘要的长度'); return; }
+    const text = toSum.map(m => `${m.role === 'user' ? '用户' : 'AI'}: ${getMsgContent(m)}`).join('\n');
+    try {
+        const resp = await fetch('https://api.deepseek.com/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentApiKey}` },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: '把以下对话压缩成300字以内的剧情摘要，保留关键事件、角色关系、性格变化、重要设定。不要遗漏新角色。' },
+                    { role: 'user', content: text }
+                ],
+                temperature: 0.3
+            })
+        });
+        const data = await resp.json();
+        storySummary = data.choices[0].message.content;
+        storySummaryEl.value = storySummary;
+        localStorage.setItem(K.summary, storySummary);
+        addSystemMessage('✅ 摘要已生成');
+    } catch (err) {
+        addSystemMessage('❌ 摘要失败: ' + err.message);
+    }
+}
+
+// ===== 导出（文本框复制，手机可用）=====
+function exportChat() {
+    if (conversationHistory.length === 0) { addSystemMessage('没有记录'); return; }
+    let text = `DeepSeek 角色扮演记录\n导出时间: ${new Date().toLocaleString()}\n${'='.repeat(40)}\n\n`;
+    text += `【固定设定】\n${fixedSetting.value}\n\n`;
+    if (dynamicSetting.value) text += `【动态设定】\n${dynamicSetting.value}\n\n`;
+    if (storySummary) text += `【剧情摘要】\n${storySummary}\n\n`;
+    text += `${'='.repeat(40)}\n\n`;
+    for (const m of conversationHistory) {
+        text += `[${m.role === 'user' ? '用户' : 'AI'}] ${m.timestamp}\n${getMsgContent(m)}\n\n`;
+    }
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.innerHTML = `
+        <div style="background:white;border-radius:16px;padding:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <strong>对话记录（全选复制）</strong>
+                <button id="closeModalBtn" style="background:none;border:none;font-size:20px;cursor:pointer;">✖</button>
+            </div>
+            <textarea id="exportTextArea" style="flex:1;min-height:350px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:none;" readonly></textarea>
+            <button id="copyExportBtn" style="margin-top:10px;padding:10px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">📋 复制全部</button>
+        </div>`;
+    document.body.appendChild(modal);
+    const ta = document.getElementById('exportTextArea');
+    ta.value = text;
+    document.getElementById('closeModalBtn').onclick = () => modal.remove();
+    document.getElementById('copyExportBtn').onclick = () => {
+        ta.select(); ta.setSelectionRange(0, 999999);
+        try { document.execCommand('copy'); alert('已复制'); } catch(e) { alert('请手动全选复制'); }
+    };
+}
+
+// ===== 新对话 =====
+function newConversation() {
+    if (!confirm('确定开新对话？当前记录会被清空（设定保留）。')) return;
+    conversationHistory = [];
+    storySummary = '';
+    storySummaryEl.value = '';
+    saveHistory();
+    localStorage.removeItem(K.summary);
+    messagesArea.innerHTML = '';
+    addSystemMessage('✨ 新对话已开始，设定已保留');
+}
+
+// ===== 保存 Key =====
+function saveApiKey() {
+    const key = apiKeyInput.value.trim();
+    if (key && key.startsWith('sk-')) {
+        currentApiKey = key;
+        localStorage.setItem(K.api, key);
+        apiKeyInput.value = '';
+        addSystemMessage('✅ API Key 已保存');
+    } else alert('请输入有效 Key (sk- 开头)');
+}
+
+// ===== 背景 =====
+function applyBg() {
+    const color = bgColorPicker.value;
+    const url = bgImageUrl.value.trim();
+    if (url) {
+        document.body.style.background = `url('${url}') center/cover fixed no-repeat`;
+        localStorage.setItem(K.bg, JSON.stringify({ type: 'image', value: url }));
+    } else {
+        document.body.style.background = color;
+        localStorage.setItem(K.bg, JSON.stringify({ type: 'color', value: color }));
+    }
+}
+function loadBg() {
+    const s = localStorage.getItem(K.bg);
+    if (!s) return;
+    try {
+        const bg = JSON.parse(s);
+        if (bg.type === 'image') {
+            document.body.style.background = `url('${bg.value}') center/cover fixed no-repeat`;
+            bgImageUrl.value = bg.value;
+        } else {
+            document.body.style.background = bg.value;
+            bgColorPicker.value = bg.value;
+        }
+    } catch(e) {}
+}
+function resetBg() {
+    document.body.style.background = '#f7f8fa';
+    bgColorPicker.value = '#f7f8fa';
+    bgImageUrl.value = '';
+    localStorage.removeItem(K.bg);
+}
+
+// ===== 初始化 =====
+function loadInitial() {
+    const k = localStorage.getItem(K.api);
+    if (k && k.startsWith('sk-')) currentApiKey = k;
+
+    fixedSetting.value = localStorage.getItem(K.fixed) || '';
+    dynamicSetting.value = localStorage.getItem(K.dynamic) || '';
+    storySummary = localStorage.getItem(K.summary) || '';
+    storySummaryEl.value = storySummary;
+
+    const m = localStorage.getItem(K.model);
+    if (m === 'deepseek-chat' || m === 'deepseek-reasoner') currentModel = m;
+    modelSelect.value = currentModel;
+
+    const t = localStorage.getItem(K.temp);
+    if (t !== null) { const v = parseFloat(t); if (!isNaN(v)) currentTemperature = v; }
+    tempSlider.value = currentTemperature;
+    tempValue.innerText = currentTemperature.toFixed(2);
+
+    const e = localStorage.getItem(K.expert);
+    if (e === 'roleplay') { expertMode = 'roleplay'; roleplayBtn.classList.add('active'); }
+
+    loadHistory();
+    loadBg();
+    if (conversationHistory.length === 0) {
+        addSystemMessage('🎭 欢迎使用。先在左侧填「固定设定」，再开始对话。');
+    } else {
+        renderAllMessages();
+    }
+    if (!currentApiKey) addSystemMessage('🔐 请先在左侧保存 API Key');
+}
+
+// ===== 事件 =====
+mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+saveKeyBtn.addEventListener('click', saveApiKey);
+clearChatBtn.addEventListener('click', newConversation);
+exportChatBtn.addEventListener('click', exportChat);
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+userInput.addEventListener('input', () => {
+    userInput.style.height = 'auto';
+    userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+});
+modelSelect.addEventListener('change', (e) => {
+    currentModel = e.target.value;
+    localStorage.setItem(K.model, currentModel);
+    addSystemMessage('模型已切换: ' + currentModel);
+});
+tempSlider.addEventListener('input', (e) => {
+    currentTemperature = parseFloat(e.target.value);
+    tempValue.innerText = currentTemperature.toFixed(2);
+    localStorage.setItem(K.temp, currentTemperature.toString());
+});
+roleplayBtn.addEventListener('click', () => {
+    expertMode = expertMode === 'roleplay' ? null : 'roleplay';
+    roleplayBtn.classList.toggle('active', expertMode === 'roleplay');
+    localStorage.setItem(K.expert, expertMode || 'none');
+});
+normalBtn.addEventListener('click', () => {
+    expertMode = null;
+    roleplayBtn.classList.remove('active');
+    localStorage.setItem(K.expert, 'none');
+});
+fixedSetting.addEventListener('input', () => localStorage.setItem(K.fixed, fixedSetting.value));
+dynamicSetting.addEventListener('input', () => localStorage.setItem(K.dynamic, dynamicSetting.value));
+storySummaryEl.addEventListener('input', () => { storySummary = storySummaryEl.value; localStorage.setItem(K.summary, storySummary); });
+genSummaryBtn.addEventListener('click', generateSummary);
+applyBgBtn.addEventListener('click', applyBg);
+resetBgBtn.addEventListener('click', resetBg);
+bgColorPicker.addEventListener('input', applyBg);
+
+loadInitial();
+userInput.focus();
 </script>
 </body>
 </html>
