@@ -5,723 +5,564 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
 <title>DeepSeek 角色扮演</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f7f8fa;height:100vh;display:flex;overflow:hidden}
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    background: #f7f8fa;
-    height: 100vh;
-    display: flex;
-    overflow: hidden;
-}
+/* ===== 全屏会话列表页 ===== */
+.session-page{position:fixed;inset:0;background:#f7f8fa;z-index:50;display:flex;flex-direction:column;transition:transform .25s ease}
+.session-page.hidden{transform:translateX(-100%)}
+.session-page-header{padding:20px 16px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+.session-page-header h1{font-size:20px;font-weight:600;color:#1f2937}
+.session-page-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.session-card{background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.session-card:active{background:#f3f4f6}
+.session-card .name{flex:1;font-size:15px;color:#1f2937;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-card .meta{font-size:12px;color:#9ca3af;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-card .actions{display:flex;gap:6px}
+.session-card .actions button{background:none;border:none;font-size:16px;cursor:pointer;opacity:.5;padding:4px}
+.session-card .actions button:active{opacity:1}
+.new-session-btn{padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:500}
 
-/* ========== 侧边栏 ========== */
-.sidebar {
-    width: 300px;
-    background: #ffffff;
-    border-right: 1px solid #e5e7eb;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease;
-    z-index: 20;
-    overflow-y: auto;
-}
+/* ===== 侧边栏 ===== */
+.sidebar{width:300px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;transition:transform .2s;z-index:20;overflow-y:auto}
+.sidebar-header{padding:16px;border-bottom:1px solid #e5e7eb}
+.sidebar-header h2{font-size:17px;font-weight:600;color:#1f2937;margin-bottom:4px}
+.sidebar-header p{font-size:12px;color:#6b7280}
+.sidebar-section{padding:14px 16px;border-bottom:1px solid #f0f0f0}
+.section-title{font-size:13px;font-weight:500;color:#6b7280;margin-bottom:10px}
+.api-row{display:flex;gap:8px;margin-bottom:12px}
+#apiKeyInput{flex:1;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;font-size:13px;outline:none;background:#f9fafb}
+#apiKeyInput:focus{border-color:#3b82f6;background:#fff}
+.btn-primary{background:#3b82f6;color:#fff;border:none;padding:0 16px;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer}
+.btn-primary:active{transform:scale(.97)}
+.model-select,.setting-textarea{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;font-size:13px;background:#f9fafb;margin-bottom:12px;font-family:inherit;resize:vertical}
+.setting-textarea{min-height:80px;line-height:1.5}
+.temp-control{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.temp-control span{font-size:13px;color:#374151}
+#tempSlider{flex:1;height:4px;border-radius:2px;background:#e5e7eb}
+.temp-value{font-size:13px;color:#3b82f6;font-weight:500;min-width:40px}
+.expert-buttons{display:flex;gap:8px;margin-bottom:12px}
+.expert-btn{flex:1;padding:8px 0;border:1px solid #e5e7eb;border-radius:30px;background:#f9fafb;font-size:12px;cursor:pointer;transition:.2s}
+.expert-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.action-buttons{display:flex;gap:8px}
+.action-btn{flex:1;padding:8px 0;border:none;border-radius:12px;font-size:13px;cursor:pointer;background:#f3f4f6;color:#374151}
+.action-btn.danger{background:#fee2e2;color:#dc2626}
+.bg-controls{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.bg-controls input[type=color]{width:40px;height:34px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer}
+.bg-controls input[type=text]{flex:1;padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;font-size:12px}
+.sidebar-footer{margin-top:auto;padding:14px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;text-align:center}
 
-.sidebar-header {
-    padding: 20px 16px;
-    border-bottom: 1px solid #e5e7eb;
-}
-.sidebar-header h2 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
-.sidebar-header p { font-size: 12px; color: #6b7280; }
-
-.sidebar-section { padding: 16px; border-bottom: 1px solid #f0f0f0; }
-.section-title { font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 10px; }
-
-.api-row { display: flex; gap: 8px; margin-bottom: 12px; }
-#apiKeyInput {
-    flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 12px;
-    font-size: 13px; outline: none; background: #f9fafb;
-}
-#apiKeyInput:focus { border-color: #3b82f6; background: white; }
-.btn-primary {
-    background: #3b82f6; color: white; border: none; padding: 0 16px;
-    border-radius: 12px; font-size: 13px; font-weight: 500; cursor: pointer;
-}
-.btn-primary:active { transform: scale(0.97); }
-
-.model-select, .setting-textarea {
-    width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 12px;
-    font-size: 13px; background: #f9fafb; margin-bottom: 12px;
-    font-family: inherit; resize: vertical;
-}
-.setting-textarea { min-height: 90px; line-height: 1.5; }
-
-.temp-control { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.temp-control span { font-size: 13px; color: #374151; }
-#tempSlider { flex: 1; height: 4px; border-radius: 2px; background: #e5e7eb; }
-.temp-value { font-size: 13px; color: #3b82f6; font-weight: 500; min-width: 40px; }
-
-.expert-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
-.expert-btn {
-    flex: 1; padding: 8px 0; border: 1px solid #e5e7eb; border-radius: 30px;
-    background: #f9fafb; font-size: 12px; cursor: pointer; transition: all 0.2s;
-}
-.expert-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-
-.action-buttons { display: flex; gap: 8px; }
-.action-btn {
-    flex: 1; padding: 8px 0; border: none; border-radius: 12px;
-    font-size: 13px; cursor: pointer; background: #f3f4f6; color: #374151;
-}
-.action-btn.danger { background: #fee2e2; color: #dc2626; }
-
-.bg-controls { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-.bg-controls input[type="color"] { width: 40px; height: 34px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; }
-.bg-controls input[type="text"] {
-    flex: 1; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 12px;
-}
-
-.sidebar-footer {
-    margin-top: auto; padding: 16px; border-top: 1px solid #e5e7eb;
-    font-size: 11px; color: #9ca3af; text-align: center;
-}
-
-/* ========== 主聊天区域 ========== */
-.main { flex: 1; display: flex; flex-direction: column; background: #ffffff; position: relative; }
-
-.mobile-menu-btn {
-    display: none; position: fixed; top: 16px; left: 16px; width: 40px; height: 40px;
-    background: white; border: 1px solid #e5e7eb; border-radius: 12px; font-size: 20px;
-    cursor: pointer; z-index: 30; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.chat-header { padding: 16px 24px; border-bottom: 1px solid #e5e7eb; background: white; }
-.chat-header h1 { font-size: 18px; font-weight: 600; color: #1f2937; }
-
-.messages-area {
-    flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column;
-}
-
-/* ===== 左右布局、去头像 ===== */
-.message { display: flex; width: 100%; margin-bottom: 16px; }
-.user-message { justify-content: flex-end; }
-.assistant-message { justify-content: flex-start; }
-
-.message-content { max-width: 78%; display: flex; flex-direction: column; }
-
-.message-bubble {
-    padding: 10px 14px; border-radius: 18px; line-height: 1.5; font-size: 15px;
-    word-wrap: break-word; white-space: pre-wrap;
-}
-.user-message .message-bubble {
-    background: #3b82f6; color: white; border-bottom-right-radius: 4px;
-}
-.assistant-message .message-bubble {
-    background: #f3f4f6; color: #1f2937; border-bottom-left-radius: 4px;
-}
-
-.reasoning-block {
-    margin-bottom: 8px; background: #fefce8; border-left: 3px solid #eab308;
-    border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #854d0e;
-    max-width: 100%;
-}
-.timestamp { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-.user-message .timestamp { text-align: right; }
-.assistant-message .timestamp { text-align: left; }
-
-/* ===== 消息操作按钮 ===== */
-.msg-actions { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
-.msg-action-btn {
-    background: none; border: 1px solid #e5e7eb; border-radius: 20px;
-    padding: 4px 12px; font-size: 13px; cursor: pointer; color: #6b7280;
-}
-.msg-action-btn:active { background: #f3f4f6; }
-.variant-nav { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 6px; }
-.variant-nav button {
-    background: none; border: 1px solid #e5e7eb; border-radius: 50%;
-    width: 24px; height: 24px; cursor: pointer; font-size: 13px; color: #6b7280;
-}
+/* ===== 主聊天区 ===== */
+.main{flex:1;display:flex;flex-direction:column;background:#fff;position:relative}
+.mobile-menu-btn{display:none;position:fixed;top:16px;left:16px;width:40px;height:40px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;font-size:20px;cursor:pointer;z-index:30;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.chat-header{padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#fff;display:flex;align-items:center;gap:8px}
+.back-btn{background:none;border:none;font-size:16px;cursor:pointer;color:#3b82f6;font-weight:500;padding:4px 8px;border-radius:8px}
+.back-btn:active{background:#eff6ff}
+.chat-header h1{font-size:18px;font-weight:600;color:#1f2937}
+.messages-area{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column}
+.message{display:flex;width:100%;margin-bottom:16px}
+.user-message{justify-content:flex-end}
+.assistant-message{justify-content:flex-start}
+.message-content{max-width:78%;display:flex;flex-direction:column}
+.message-bubble{padding:10px 14px;border-radius:18px;line-height:1.5;font-size:15px;word-wrap:break-word;white-space:pre-wrap}
+.user-message .message-bubble{background:#3b82f6;color:#fff;border-bottom-right-radius:4px}
+.assistant-message .message-bubble{background:#f3f4f6;color:#1f2937;border-bottom-left-radius:4px}
+.reasoning-block{margin-bottom:8px;background:#fefce8;border-left:3px solid #eab308;border-radius:12px;padding:10px 14px;font-size:13px;color:#854d0e}
+.timestamp{font-size:11px;color:#9ca3af;margin-top:4px}
+.user-message .timestamp{text-align:right}
+.assistant-message .timestamp{text-align:left}
+.msg-actions{display:flex;gap:8px;margin-top:6px;align-items:center}
+.msg-action-btn{background:none;border:1px solid #e5e7eb;border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer;color:#6b7280}
+.msg-action-btn:active{background:#f3f4f6}
+.variant-nav{font-size:13px;color:#6b7280;display:flex;align-items:center;gap:6px}
+.variant-nav button{background:none;border:1px solid #e5e7eb;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:13px;color:#6b7280}
 
 /* ===== 输入区 ===== */
-.input-area { padding: 16px; border-top: 1px solid #e5e7eb; background: white; }
-.input-container { max-width: 800px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; }
+.input-area{padding:16px;border-top:1px solid #e5e7eb;background:#fff}
+.input-container{max-width:800px;margin:0 auto;display:flex;gap:10px;align-items:flex-end}
+#userInput{flex:1;padding:12px 18px;border:1px solid #e5e7eb;border-radius:24px;font-size:15px;font-family:inherit;resize:none;outline:none;max-height:120px;background:#f9fafb}
+#userInput:focus{border-color:#3b82f6;background:#fff}
+.send-btn{width:44px;height:44px;background:#3b82f6;border:none;border-radius:24px;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0}
+.send-btn:disabled{opacity:.5}
 
-#userInput {
-    flex: 1; padding: 12px 18px; border: 1px solid #e5e7eb; border-radius: 24px;
-    font-size: 15px; font-family: inherit; resize: none; outline: none;
-    max-height: 120px; background: #f9fafb;
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;height:100%;transform:translateX(-100%);box-shadow:2px 0 12px rgba(0,0,0,.1)}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu-btn{display:flex}
+  .chat-header{padding-left:70px}
+  .message-content{max-width:85%}
 }
-#userInput:focus { border-color: #3b82f6; background: white; }
-
-.send-btn {
-    width: 44px; height: 44px; background: #3b82f6; border: none; border-radius: 24px;
-    color: white; font-size: 18px; cursor: pointer; flex-shrink: 0;
-}
-.send-btn:disabled { opacity: 0.5; }
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-    .sidebar { position: fixed; left: 0; top: 0; height: 100%; transform: translateX(-100%); box-shadow: 2px 0 12px rgba(0,0,0,0.1); }
-    .sidebar.open { transform: translateX(0); }
-    .mobile-menu-btn { display: flex; }
-    .chat-header { padding-left: 70px; }
-    .message-content { max-width: 85%; }
-}
-
-.loading { display: flex; gap: 8px; padding: 12px 16px; color: #6b7280; }
-.loading span { width: 8px; height: 8px; background: #9ca3af; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-.loading span:nth-child(1) { animation-delay: -0.32s; }
-.loading span:nth-child(2) { animation-delay: -0.16s; }
-@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+.loading{display:flex;gap:8px;padding:12px 16px;color:#6b7280}
+.loading span{width:8px;height:8px;background:#9ca3af;border-radius:50%;animation:bounce 1.4s infinite ease-in-out both}
+.loading span:nth-child(1){animation-delay:-.32s}
+.loading span:nth-child(2){animation-delay:-.16s}
+@keyframes bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
 </style>
 </head>
 <body>
 
-<button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h2>🎭 角色扮演</h2>
-        <p>DeepSeek</p>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">API 配置</div>
-        <div class="api-row">
-            <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
-            <button id="saveKeyBtn" class="btn-primary">保存</button>
-        </div>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">固定设定（永不改动，走缓存）</div>
-        <textarea id="fixedSetting" class="setting-textarea" placeholder="把你的人物设定、世界观、规则粘贴到这里。一次填好，以后不用再管。"></textarea>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">动态设定（随时追加新角色）</div>
-        <textarea id="dynamicSetting" class="setting-textarea" placeholder="中途新增的角色、设定写这里。可以随时追加。"></textarea>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">模型设置</div>
-        <select id="modelSelect" class="model-select">
-            <option value="deepseek-chat">💬 对话模式 (deepseek-chat)</option>
-            <option value="deepseek-reasoner">🧠 推理模式 (deepseek-reasoner)</option>
-        </select>
-        <div class="temp-control">
-            <span>🌡️ 温度</span>
-            <input type="range" id="tempSlider" min="0" max="2" step="0.05" value="0.9">
-            <span id="tempValue" class="temp-value">0.90</span>
-        </div>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">专家模式</div>
-        <div class="expert-buttons">
-            <button id="roleplayModeBtn" class="expert-btn">🎭 角色沉浸</button>
-            <button id="normalModeBtn" class="expert-btn">✖️ 关闭</button>
-        </div>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">背景</div>
-        <div class="bg-controls">
-            <input type="color" id="bgColorPicker" value="#f7f8fa">
-            <input type="text" id="bgImageUrl" placeholder="或填图片URL">
-        </div>
-        <button id="applyBgBtn" class="action-btn" style="width:100%;">应用背景</button>
-        <button id="resetBgBtn" class="action-btn" style="width:100%; margin-top:6px;">恢复默认</button>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">剧情摘要（自动生成）</div>
-        <textarea id="storySummary" class="setting-textarea" placeholder="每30条自动生成，也可手动编辑。"></textarea>
-        <button id="genSummaryBtn" class="action-btn" style="width:100%;">立即生成摘要</button>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="section-title">工具</div>
-        <div class="action-buttons">
-            <button id="exportChatBtn" class="action-btn">📥 导出</button>
-            <button id="clearChatBtn" class="action-btn danger">🗑️ 新对话</button>
-        </div>
-    </div>
-
-    <div class="sidebar-footer">🔒 数据仅存本地</div>
+<!-- 全屏会话列表页 -->
+<div class="session-page" id="sessionPage">
+  <div class="session-page-header">
+    <h1>💬 我的会话</h1>
+    <button class="new-session-btn" id="newSessionBtn">＋ 新建会话</button>
+  </div>
+  <div class="session-page-list" id="sessionList"></div>
 </div>
 
-<div class="main">
-    <div class="chat-header"><h1>DeepSeek 角色扮演</h1></div>
-    <div class="messages-area" id="messagesArea"></div>
+<!-- 侧边栏 -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>🎭 角色扮演</h2>
+    <p>DeepSeek · 多会话版</p>
+  </div>
 
-    <div class="input-area">
-        <div class="input-container">
-            <textarea id="userInput" rows="1" placeholder="输入消息..."></textarea>
-            <button id="sendBtn" class="send-btn">➤</button>
-        </div>
+  <div class="sidebar-section">
+    <div class="section-title">API 配置</div>
+    <div class="api-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+      <button id="saveKeyBtn" class="btn-primary">保存</button>
     </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">固定设定（永不改动，走缓存）</div>
+    <textarea id="fixedSetting" class="setting-textarea" placeholder="人物设定、世界观、规则。一次填好，以后不用管。"></textarea>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">动态设定（随时追加新角色）</div>
+    <textarea id="dynamicSetting" class="setting-textarea" placeholder="中途新增的角色、设定写这里。"></textarea>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">模型设置</div>
+    <select id="modelSelect" class="model-select">
+      <option value="deepseek-chat">💬 对话模式 (deepseek-chat)</option>
+      <option value="deepseek-reasoner">🧠 推理模式 (deepseek-reasoner)</option>
+    </select>
+    <div class="temp-control">
+      <span>🌡️ 温度</span>
+      <input type="range" id="tempSlider" min="0" max="2" step="0.05" value="0.9">
+      <span id="tempValue" class="temp-value">0.90</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">专家模式</div>
+    <div class="expert-buttons">
+      <button id="roleplayModeBtn" class="expert-btn">🎭 角色沉浸</button>
+      <button id="normalModeBtn" class="expert-btn">✖️ 关闭</button>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">背景</div>
+    <div class="bg-controls">
+      <input type="color" id="bgColorPicker" value="#f7f8fa">
+      <input type="text" id="bgImageUrl" placeholder="或填图片URL">
+    </div>
+    <button id="applyBgBtn" class="action-btn" style="width:100%">应用背景</button>
+    <button id="resetBgBtn" class="action-btn" style="width:100%;margin-top:6px">恢复默认</button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">剧情摘要（手动生成）</div>
+    <textarea id="storySummary" class="setting-textarea" placeholder="剧情翻篇时，点下面按钮生成一次。平时不用管。"></textarea>
+    <button id="genSummaryBtn" class="action-btn" style="width:100%">📌 生成摘要（剧情转折时点）</button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-title">工具</div>
+    <div class="action-buttons">
+      <button id="exportChatBtn" class="action-btn">📥 导出</button>
+      <button id="clearChatBtn" class="action-btn danger">🗑️ 清空</button>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">🔒 数据仅存本地</div>
+</div>
+
+<!-- 聊天页 -->
+<div class="main">
+  <div class="chat-header">
+    <button class="back-btn" id="backBtn">‹ 会话</button>
+    <h1 id="chatTitle">DeepSeek 角色扮演</h1>
+  </div>
+  <div class="messages-area" id="messagesArea"></div>
+  <div class="input-area">
+    <div class="input-container">
+      <textarea id="userInput" rows="1" placeholder="输入消息..."></textarea>
+      <button id="sendBtn" class="send-btn">➤</button>
+    </div>
+  </div>
 </div>
 
 <script>
-// ===== DOM =====
-const sidebar = document.getElementById('sidebar');
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const apiKeyInput = document.getElementById('apiKeyInput');
-const saveKeyBtn = document.getElementById('saveKeyBtn');
-const fixedSetting = document.getElementById('fixedSetting');
-const dynamicSetting = document.getElementById('dynamicSetting');
-const modelSelect = document.getElementById('modelSelect');
-const tempSlider = document.getElementById('tempSlider');
-const tempValue = document.getElementById('tempValue');
-const roleplayBtn = document.getElementById('roleplayModeBtn');
-const normalBtn = document.getElementById('normalModeBtn');
-const exportChatBtn = document.getElementById('exportChatBtn');
-const clearChatBtn = document.getElementById('clearChatBtn');
-const userInput = document.getElementById('userInput');
-const sendBtn = document.getElementById('sendBtn');
-const messagesArea = document.getElementById('messagesArea');
-const storySummaryEl = document.getElementById('storySummary');
-const genSummaryBtn = document.getElementById('genSummaryBtn');
-const bgColorPicker = document.getElementById('bgColorPicker');
-const bgImageUrl = document.getElementById('bgImageUrl');
-const applyBgBtn = document.getElementById('applyBgBtn');
-const resetBgBtn = document.getElementById('resetBgBtn');
+const $ = id => document.getElementById(id);
+const sidebar=$('sidebar'),mobileMenuBtn=$('mobileMenuBtn'),apiKeyInput=$('apiKeyInput'),saveKeyBtn=$('saveKeyBtn');
+const fixedSetting=$('fixedSetting'),dynamicSetting=$('dynamicSetting'),modelSelect=$('modelSelect');
+const tempSlider=$('tempSlider'),tempValue=$('tempValue'),roleplayBtn=$('roleplayModeBtn'),normalBtn=$('normalModeBtn');
+const exportChatBtn=$('exportChatBtn'),clearChatBtn=$('clearChatBtn'),userInput=$('userInput'),sendBtn=$('sendBtn');
+const messagesArea=$('messagesArea'),storySummaryEl=$('storySummary'),genSummaryBtn=$('genSummaryBtn');
+const bgColorPicker=$('bgColorPicker'),bgImageUrl=$('bgImageUrl'),applyBgBtn=$('applyBgBtn'),resetBgBtn=$('resetBgBtn');
+const sessionList=$('sessionList'),newSessionBtn=$('newSessionBtn'),chatTitle=$('chatTitle');
+const sessionPage=$('sessionPage'),backBtn=$('backBtn');
 
-// ===== 状态 =====
-let currentApiKey = '';
-let conversationHistory = [];   // { role, variants: [], activeVariant, timestamp }
-let currentTemperature = 0.9;
-let currentModel = 'deepseek-chat';
-let expertMode = null;
-let storySummary = '';
-let isGenerating = false;
+let currentApiKey='',conversationHistory=[],currentTemperature=0.9,currentModel='deepseek-chat';
+let expertMode=null,storySummary='',isGenerating=false;
+let sessions=[],currentSessionId=null;
 
-// ===== 存储键 =====
-const K = {
-    history: 'ds_rp_history',
-    api: 'ds_rp_api',
-    model: 'ds_rp_model',
-    temp: 'ds_rp_temp',
-    expert: 'ds_rp_expert',
-    fixed: 'ds_rp_fixed',
-    dynamic: 'ds_rp_dynamic',
-    summary: 'ds_rp_summary',
-    bg: 'ds_rp_bg'
-};
+const K={sessions:'ds_rp_sessions_v2',current:'ds_rp_current_v2',api:'ds_rp_api',model:'ds_rp_model',temp:'ds_rp_temp',expert:'ds_rp_expert',bg:'ds_rp_bg'};
 
-// ===== 存储 =====
-function saveHistory() { localStorage.setItem(K.history, JSON.stringify(conversationHistory)); }
-function loadHistory() {
-    const s = localStorage.getItem(K.history);
-    if (s) try { conversationHistory = JSON.parse(s); } catch(e) { conversationHistory = []; }
-    else conversationHistory = [];
-    // 兼容旧结构
-    conversationHistory = conversationHistory.map(m => {
-        if (m.variants) return m;
-        return { role: m.role, variants: [m.content], activeVariant: 0, timestamp: m.timestamp || '' };
-    });
+function escapeHtml(t){return String(t).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+function scrollBottom(){messagesArea.scrollTop=messagesArea.scrollHeight}
+function getMsgContent(m){return m.variants[m.activeVariant]}
+
+// ===== 会话管理 =====
+function saveSessions(){localStorage.setItem(K.sessions,JSON.stringify(sessions));localStorage.setItem(K.current,currentSessionId)}
+function getCurrentSession(){return sessions.find(x=>x.id===currentSessionId)}
+function persistCurrentSession(){
+  const s=getCurrentSession();if(!s)return;
+  s.history=conversationHistory;s.fixed=fixedSetting.value;s.dynamic=dynamicSetting.value;s.summary=storySummary;
 }
-function getMsgContent(m) { return m.variants[m.activeVariant]; }
+function loadCurrentSession(){
+  const s=getCurrentSession();if(!s)return;
+  conversationHistory=s.history||[];
+  conversationHistory=conversationHistory.map(m=>m.variants?m:{role:m.role,variants:[m.content],activeVariant:0,timestamp:m.timestamp||''});
+  storySummary=s.summary||'';storySummaryEl.value=storySummary;
+  fixedSetting.value=s.fixed||'';dynamicSetting.value=s.dynamic||'';
+  chatTitle.textContent='🎭 '+s.name;
+  renderAllMessages();
+}
+function createSession(name,silent){
+  const id='sess_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  sessions.push({id,name:name||`新对话 ${sessions.length+1}`,fixed:'',dynamic:'',summary:'',history:[]});
+  currentSessionId=id;saveSessions();
+  if(!silent){loadCurrentSession();renderSessionList();}
+}
+function switchSession(id){
+  if(id===currentSessionId)return;
+  persistCurrentSession();
+  currentSessionId=id;saveSessions();
+  loadCurrentSession();renderSessionList();
+}
+function renameSession(id){
+  const s=sessions.find(x=>x.id===id);if(!s)return;
+  const n=prompt('重命名会话',s.name);
+  if(n&&n.trim()){s.name=n.trim();saveSessions();renderSessionList();if(id===currentSessionId)chatTitle.textContent='🎭 '+s.name;}
+}
+function deleteSession(id){
+  if(sessions.length===1){alert('至少保留一个会话');return;}
+  if(!confirm('确定删除这个会话？聊天记录会一起删掉。'))return;
+  sessions=sessions.filter(x=>x.id!==id);
+  if(currentSessionId===id)currentSessionId=sessions[0].id;
+  saveSessions();loadCurrentSession();renderSessionList();
+}
+function renderSessionList(){
+  sessionList.innerHTML='';
+  for(const s of sessions){
+    const card=document.createElement('div');
+    card.className='session-card';
+    const preview=(s.history&&s.history.length)?getMsgContent(s.history[s.history.length-1]).slice(0,40):'（还没开始聊）';
+    card.innerHTML=`
+      <div style="flex:1;min-width:0;">
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="meta">${escapeHtml(preview)}</div>
+      </div>
+      <div class="actions">
+        <button data-action="rename" data-id="${s.id}">✏️</button>
+        <button data-action="delete" data-id="${s.id}">🗑️</button>
+      </div>`;
+    card.addEventListener('click',e=>{
+      const a=e.target.dataset.action;
+      if(a==='rename'){e.stopPropagation();renameSession(s.id);return;}
+      if(a==='delete'){e.stopPropagation();deleteSession(s.id);return;}
+      switchSession(s.id);
+      hideSessionPage();
+    });
+    sessionList.appendChild(card);
+  }
+}
+function showSessionPage(){sessionPage.classList.remove('hidden')}
+function hideSessionPage(){sessionPage.classList.add('hidden')}
+
+newSessionBtn.addEventListener('click',()=>{
+  persistCurrentSession();
+  const name=prompt('新会话名字（可留空）','');
+  createSession(name&&name.trim()?name.trim():null,false);
+  hideSessionPage();
+});
+backBtn.addEventListener('click',()=>{
+  persistCurrentSession();
+  renderSessionList();
+  showSessionPage();
+});
 
 // ===== 系统提示词 =====
-const ROLEPLAY_INSTRUCTION = "〖角色沉浸要求〗完全进入角色，用()或【】表示动作、内心戏，展现真实情绪，不要分析性语言。";
-
-function buildSystemPrompt() {
-    let sys = '';
-    const fixed = fixedSetting.value.trim();
-    const dynamic = dynamicSetting.value.trim();
-    if (fixed) sys += fixed + '\n\n';
-    if (dynamic) sys += '【动态设定】\n' + dynamic + '\n\n';
-    if (storySummary) sys += '【前情提要】\n' + storySummary + '\n\n';
-    if (expertMode === 'roleplay') sys += ROLEPLAY_INSTRUCTION + '\n\n';
-    if (!sys) sys = '你是一个角色扮演者，严格按用户设定扮演角色。';
-    return sys;
+const ROLEPLAY_INSTRUCTION="〖角色沉浸要求〗完全进入角色，用()或【】表示动作、内心戏，展现真实情绪，不要分析性语言。";
+function buildSystemPrompt(){
+  let sys='';
+  const f=fixedSetting.value.trim(),d=dynamicSetting.value.trim();
+  if(f)sys+=f+'\n\n';
+  if(d)sys+='【动态设定】\n'+d+'\n\n';
+  if(storySummary)sys+='【前情提要】\n'+storySummary+'\n\n';
+  if(expertMode==='roleplay')sys+=ROLEPLAY_INSTRUCTION+'\n\n';
+  if(!sys)sys='你是一个角色扮演者，严格按用户设定扮演角色。';
+  return sys;
+}
+function buildMessagesForAPI(){
+  const messages=[{role:'system',content:buildSystemPrompt()}];
+  const recent=conversationHistory.slice(-30);
+  for(const m of recent)messages.push({role:m.role,content:getMsgContent(m)});
+  return messages;
 }
 
-// ===== 构建 API 消息（关键：只发选中版本 + 只发最近30条）=====
-function buildMessagesForAPI() {
-    const messages = [{ role: 'system', content: buildSystemPrompt() }];
-    const recent = conversationHistory.slice(-30);
-    for (const m of recent) {
-        messages.push({ role: m.role, content: getMsgContent(m) });
+// ===== 渲染 =====
+function addSystemMessage(content){
+  const div=document.createElement('div');div.className='message assistant-message';
+  div.innerHTML=`<div class="message-content"><div class="message-bubble" style="background:#f3f4f6;color:#6b7280;font-style:italic">${escapeHtml(content)}</div></div>`;
+  messagesArea.appendChild(div);scrollBottom();setTimeout(()=>div.remove(),3000);
+}
+function appendMessageToDOM(msg,index){
+  const role=msg.role,div=document.createElement('div');
+  div.className=`message ${role}-message`;
+  let inner='<div class="message-content">';
+  if(role==='assistant'&&msg.reasoning)inner+=`<div class="reasoning-block"><strong>🧠 思考</strong><div>${escapeHtml(msg.reasoning)}</div></div>`;
+  inner+=`<div class="message-bubble">${escapeHtml(getMsgContent(msg))}</div><div class="timestamp">${msg.timestamp||''}</div>`;
+  if(role==='assistant'){
+    inner+='<div class="msg-actions">';
+    inner+=`<button class="msg-action-btn" data-action="regen" data-index="${index}">🔄 重新生成</button>`;
+    inner+=`<button class="msg-action-btn" data-action="copy" data-index="${index}">📋</button>`;
+    if(msg.variants&&msg.variants.length>1){
+      inner+='<div class="variant-nav">';
+      inner+=`<button data-action="prev" data-index="${index}">◀</button>`;
+      inner+=`<span>${msg.activeVariant+1}/${msg.variants.length}</span>`;
+      inner+=`<button data-action="next" data-index="${index}">▶</button>`;
+      inner+='</div>';
     }
-    return messages;
+    inner+='</div>';
+  }else{
+    inner+=`<div class="msg-actions" style="justify-content:flex-end"><button class="msg-action-btn" data-action="undo" data-index="${index}">↩ 撤回</button></div>`;
+  }
+  inner+='</div>';
+  div.innerHTML=inner;messagesArea.appendChild(div);
 }
-
-// ===== UI =====
-function escapeHtml(text) {
-    return String(text).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+function renderAllMessages(){messagesArea.innerHTML='';conversationHistory.forEach((m,i)=>appendMessageToDOM(m,i));scrollBottom()}
+function showTypingIndicator(){
+  const d=document.createElement('div');d.id='typingIndicator';d.className='message assistant-message';
+  d.innerHTML='<div class="message-content"><div class="loading"><span></span><span></span><span></span></div></div>';
+  messagesArea.appendChild(d);scrollBottom();
 }
-function scrollBottom() { messagesArea.scrollTop = messagesArea.scrollHeight; }
+function removeTypingIndicator(){const d=$('typingIndicator');if(d)d.remove()}
+function disableButtons(b){sendBtn.disabled=b}
 
-function addSystemMessage(content) {
-    const div = document.createElement('div');
-    div.className = 'message assistant-message';
-    div.innerHTML = `<div class="message-content"><div class="message-bubble" style="background:#f3f4f6;color:#6b7280;font-style:italic;">${escapeHtml(content)}</div></div>`;
-    messagesArea.appendChild(div); scrollBottom();
-    setTimeout(() => div.remove(), 3000);
-}
-
-function appendMessageToDOM(msg, index) {
-    const role = msg.role;
-    const div = document.createElement('div');
-    div.className = `message ${role}-message`;
-    let inner = `<div class="message-content">`;
-    if (role === 'assistant' && msg.reasoning) {
-        inner += `<div class="reasoning-block"><strong>🧠 思考</strong><div>${escapeHtml(msg.reasoning)}</div></div>`;
-    }
-    inner += `<div class="message-bubble">${escapeHtml(getMsgContent(msg))}</div>`;
-    inner += `<div class="timestamp">${msg.timestamp || ''}</div>`;
-
-    // AI 消息底下的操作按钮
-    if (role === 'assistant') {
-        inner += `<div class="msg-actions">`;
-        inner += `<button class="msg-action-btn" data-action="regen" data-index="${index}">🔄 重新生成</button>`;
-        inner += `<button class="msg-action-btn" data-action="copy" data-index="${index}">📋</button>`;
-        if (msg.variants && msg.variants.length > 1) {
-            inner += `<div class="variant-nav">`;
-            inner += `<button data-action="prev" data-index="${index}">◀</button>`;
-            inner += `<span>${msg.activeVariant + 1}/${msg.variants.length}</span>`;
-            inner += `<button data-action="next" data-index="${index}">▶</button>`;
-            inner += `</div>`;
-        }
-        inner += `</div>`;
-    }
-    inner += `</div>`;
-    div.innerHTML = inner;
-    messagesArea.appendChild(div);
-}
-
-function renderAllMessages() {
-    messagesArea.innerHTML = '';
-    conversationHistory.forEach((m, i) => appendMessageToDOM(m, i));
-    scrollBottom();
-}
-
-function showTypingIndicator() {
-    const div = document.createElement('div');
-    div.id = 'typingIndicator';
-    div.className = 'message assistant-message';
-    div.innerHTML = `<div class="message-content"><div class="loading"><span></span><span></span><span></span></div></div>`;
-    messagesArea.appendChild(div); scrollBottom();
-}
-function removeTypingIndicator() { document.getElementById('typingIndicator')?.remove(); }
-function disableButtons(d) { sendBtn.disabled = d; }
-
-// ===== API 调用 =====
-async function callAPI() {
-    if (!currentApiKey) { addSystemMessage('❌ 请先保存 API Key'); return null; }
-    const resp = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentApiKey}` },
-        body: JSON.stringify({
-            model: currentModel,
-            messages: buildMessagesForAPI(),
-            temperature: currentTemperature,
-            stream: false
-        })
-    });
-    if (!resp.ok) {
-        const t = await resp.text();
-        throw new Error(`HTTP ${resp.status}: ${t}`);
-    }
-    const data = await resp.json();
-    return {
-        content: data.choices[0].message.content,
-        reasoning: data.choices[0].message.reasoning_content || null
-    };
+// ===== API =====
+async function callAPI(){
+  if(!currentApiKey)throw new Error('请先保存 API Key');
+  const resp=await fetch('https://api.deepseek.com/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentApiKey}`},
+    body:JSON.stringify({model:currentModel,messages:buildMessagesForAPI(),temperature:currentTemperature,stream:false})
+  });
+  if(!resp.ok){const t=await resp.text();throw new Error(`HTTP ${resp.status}: ${t}`)}
+  const data=await resp.json();
+  return{content:data.choices[0].message.content,reasoning:data.choices[0].message.reasoning_content||null};
 }
 
 // ===== 发送 =====
-async function sendMessage() {
-    const q = userInput.value.trim();
-    if (!q || isGenerating) return;
-    isGenerating = true;
-    userInput.value = '';
-    userInput.style.height = 'auto';
-
-    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    conversationHistory.push({ role: 'user', variants: [q], activeVariant: 0, timestamp: time });
-    saveHistory();
-    appendMessageToDOM(conversationHistory[conversationHistory.length - 1], conversationHistory.length - 1);
-    scrollBottom();
-
-    showTypingIndicator();
-    disableButtons(true);
-    try {
-        const res = await callAPI();
-        removeTypingIndicator();
-        if (res) {
-            conversationHistory.push({ role: 'assistant', variants: [res.content], activeVariant: 0, timestamp: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), reasoning: res.reasoning });
-            saveHistory();
-            appendMessageToDOM(conversationHistory[conversationHistory.length - 1], conversationHistory.length - 1);
-            scrollBottom();
-            // 每30条自动摘要
-            if (conversationHistory.length % 30 === 0) generateSummary();
-        }
-    } catch (err) {
-        removeTypingIndicator();
-        alert('API 出错：' + err.message);
-        conversationHistory.pop();
-        saveHistory();
-        renderAllMessages();
-    } finally {
-        isGenerating = false;
-        disableButtons(false);
-        userInput.focus();
+async function sendMessage(){
+  const q=userInput.value.trim();if(!q||isGenerating)return;
+  isGenerating=true;userInput.value='';userInput.style.height='auto';
+  const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  conversationHistory.push({role:'user',variants:[q],activeVariant:0,timestamp:time});
+  persistCurrentSession();saveSessions();
+  appendMessageToDOM(conversationHistory[conversationHistory.length-1],conversationHistory.length-1);scrollBottom();
+  showTypingIndicator();disableButtons(true);
+  try{
+    const res=await callAPI();removeTypingIndicator();
+    if(res){
+      conversationHistory.push({role:'assistant',variants:[res.content],activeVariant:0,timestamp:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),reasoning:res.reasoning});
+      persistCurrentSession();saveSessions();
+      appendMessageToDOM(conversationHistory[conversationHistory.length-1],conversationHistory.length-1);scrollBottom();
+      // ⚠️ 自动摘要已关闭，改为手动
+      // if(conversationHistory.length%30===0)generateSummary();
     }
+  }catch(err){
+    removeTypingIndicator();
+    const d=document.createElement('div');d.className='message assistant-message';
+    d.innerHTML=`<div class="message-content"><div class="message-bubble" style="background:#fee2e2;color:#dc2626">❌ ${escapeHtml(err.message)}</div></div>`;
+    messagesArea.appendChild(d);scrollBottom();
+  }finally{isGenerating=false;disableButtons(false);userInput.focus()}
 }
 
-// ===== 重新生成（保留旧版本）=====
-async function regenerateAt(index) {
-    const msg = conversationHistory[index];
-    if (!msg || msg.role !== 'assistant' || isGenerating) return;
-    isGenerating = true;
-    disableButtons(true);
-    // 临时截断到这条之前
-    const original = conversationHistory.slice();
-    const before = conversationHistory.slice(0, index);
-    const savedHistory = conversationHistory;
-    conversationHistory = before;
-    showTypingIndicator();
-    try {
-        const res = await callAPI();
-        removeTypingIndicator();
-        if (res) {
-            conversationHistory = savedHistory;
-            msg.variants.push(res.content);
-            msg.activeVariant = msg.variants.length - 1;
-            msg.reasoning = res.reasoning;
-            saveHistory();
-            renderAllMessages();
-        }
-    } catch (err) {
-        conversationHistory = savedHistory;
-        removeTypingIndicator();
-        addSystemMessage('❌ 重生成失败: ' + err.message);
-    } finally {
-        isGenerating = false;
-        disableButtons(false);
+// ===== 重新生成 =====
+async function regenerateAt(index){
+  const msg=conversationHistory[index];
+  if(!msg||msg.role!=='assistant'||isGenerating)return;
+  isGenerating=true;disableButtons(true);
+  const saved=conversationHistory;
+  conversationHistory=conversationHistory.slice(0,index);
+  showTypingIndicator();
+  try{
+    const res=await callAPI();removeTypingIndicator();
+    if(res){
+      conversationHistory=saved;
+      msg.variants.push(res.content);msg.activeVariant=msg.variants.length-1;msg.reasoning=res.reasoning;
+      persistCurrentSession();saveSessions();renderAllMessages();
     }
+  }catch(err){conversationHistory=saved;removeTypingIndicator();addSystemMessage('❌ 重生成失败: '+err.message)}
+  finally{isGenerating=false;disableButtons(false)}
 }
 
-// ===== 消息按钮事件（委托）=====
-messagesArea.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const idx = parseInt(btn.dataset.index);
-    const action = btn.dataset.action;
-    const msg = conversationHistory[idx];
-    if (!msg) return;
+// ===== 撤回 =====
+function undoAt(index){
+  const msg=conversationHistory[index];
+  if(!msg||msg.role!=='user')return;
+  if(isGenerating){addSystemMessage('正在生成中，稍等');return}
+  const content=getMsgContent(msg);
+  conversationHistory=conversationHistory.slice(0,index);
+  persistCurrentSession();saveSessions();
+  userInput.value=content;userInput.focus();
+  userInput.style.height='auto';userInput.style.height=Math.min(userInput.scrollHeight,120)+'px';
+  renderAllMessages();
+}
 
-    if (action === 'regen') regenerateAt(idx);
-    else if (action === 'copy') {
-        navigator.clipboard.writeText(getMsgContent(msg)).then(() => addSystemMessage('✅ 已复制'));
-    }
-    else if (action === 'prev' && msg.variants.length > 1) {
-        msg.activeVariant = (msg.activeVariant - 1 + msg.variants.length) % msg.variants.length;
-        saveHistory(); renderAllMessages();
-    }
-    else if (action === 'next' && msg.variants.length > 1) {
-        msg.activeVariant = (msg.activeVariant + 1) % msg.variants.length;
-        saveHistory(); renderAllMessages();
-    }
+// ===== 消息按钮 =====
+messagesArea.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');if(!btn)return;
+  const idx=parseInt(btn.dataset.index),action=btn.dataset.action;
+  const msg=conversationHistory[idx];if(!msg)return;
+  if(action==='regen')regenerateAt(idx);
+  else if(action==='copy')navigator.clipboard.writeText(getMsgContent(msg)).then(()=>addSystemMessage('✅ 已复制'));
+  else if(action==='undo')undoAt(idx);
+  else if(action==='prev'&&msg.variants.length>1){msg.activeVariant=(msg.activeVariant-1+msg.variants.length)%msg.variants.length;persistCurrentSession();saveSessions();renderAllMessages()}
+  else if(action==='next'&&msg.variants.length>1){msg.activeVariant=(msg.activeVariant+1)%msg.variants.length;persistCurrentSession();saveSessions();renderAllMessages()}
 });
 
-// ===== 剧情摘要 =====
-async function generateSummary() {
-    if (!currentApiKey) { addSystemMessage('请先保存 API Key'); return; }
-    if (conversationHistory.length < 10) { addSystemMessage('对话太短，不用摘要'); return; }
-    addSystemMessage('⏳ 正在生成剧情摘要...');
-    // 摘要范围：除了最近30条之外的所有内容
-    const toSum = conversationHistory.slice(0, -30);
-    if (toSum.length === 0) { addSystemMessage('还没到需要摘要的长度'); return; }
-    const text = toSum.map(m => `${m.role === 'user' ? '用户' : 'AI'}: ${getMsgContent(m)}`).join('\n');
-    try {
-        const resp = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentApiKey}` },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                    { role: 'system', content: '把以下对话压缩成300字以内的剧情摘要，保留关键事件、角色关系、性格变化、重要设定。不要遗漏新角色。' },
-                    { role: 'user', content: text }
-                ],
-                temperature: 0.3
-            })
-        });
-        const data = await resp.json();
-        storySummary = data.choices[0].message.content;
-        storySummaryEl.value = storySummary;
-        localStorage.setItem(K.summary, storySummary);
-        addSystemMessage('✅ 摘要已生成');
-    } catch (err) {
-        addSystemMessage('❌ 摘要失败: ' + err.message);
-    }
+// ===== 摘要（手动）=====
+async function generateSummary(){
+  if(!currentApiKey){addSystemMessage('请先保存 API Key');return}
+  if(conversationHistory.length<10){addSystemMessage('对话太短');return}
+  const toSum=conversationHistory.slice(0,-30);
+  if(toSum.length===0){addSystemMessage('还没到需要摘要的长度');return}
+  addSystemMessage('⏳ 正在生成摘要...');
+  const text=toSum.map(m=>`${m.role==='user'?'用户':'AI'}: ${getMsgContent(m)}`).join('\n');
+  try{
+    const resp=await fetch('https://api.deepseek.com/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentApiKey}`},
+      body:JSON.stringify({model:'deepseek-chat',messages:[
+        {role:'system',content:'把以下对话压缩成300字以内的剧情摘要，保留关键事件、角色关系、性格变化、重要设定。不要遗漏新角色。'},
+        {role:'user',content:text}
+      ],temperature:0.3})
+    });
+    const data=await resp.json();
+    storySummary=data.choices[0].message.content;storySummaryEl.value=storySummary;
+    persistCurrentSession();saveSessions();addSystemMessage('✅ 摘要已生成');
+  }catch(err){addSystemMessage('❌ 摘要失败: '+err.message)}
 }
 
-// ===== 导出（文本框复制，手机可用）=====
-function exportChat() {
-    if (conversationHistory.length === 0) { addSystemMessage('没有记录'); return; }
-    let text = `DeepSeek 角色扮演记录\n导出时间: ${new Date().toLocaleString()}\n${'='.repeat(40)}\n\n`;
-    text += `【固定设定】\n${fixedSetting.value}\n\n`;
-    if (dynamicSetting.value) text += `【动态设定】\n${dynamicSetting.value}\n\n`;
-    if (storySummary) text += `【剧情摘要】\n${storySummary}\n\n`;
-    text += `${'='.repeat(40)}\n\n`;
-    for (const m of conversationHistory) {
-        text += `[${m.role === 'user' ? '用户' : 'AI'}] ${m.timestamp}\n${getMsgContent(m)}\n\n`;
-    }
-    const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;';
-    modal.innerHTML = `
-        <div style="background:white;border-radius:16px;padding:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <strong>对话记录（全选复制）</strong>
-                <button id="closeModalBtn" style="background:none;border:none;font-size:20px;cursor:pointer;">✖</button>
-            </div>
-            <textarea id="exportTextArea" style="flex:1;min-height:350px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:none;" readonly></textarea>
-            <button id="copyExportBtn" style="margin-top:10px;padding:10px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">📋 复制全部</button>
-        </div>`;
-    document.body.appendChild(modal);
-    const ta = document.getElementById('exportTextArea');
-    ta.value = text;
-    document.getElementById('closeModalBtn').onclick = () => modal.remove();
-    document.getElementById('copyExportBtn').onclick = () => {
-        ta.select(); ta.setSelectionRange(0, 999999);
-        try { document.execCommand('copy'); alert('已复制'); } catch(e) { alert('请手动全选复制'); }
-    };
+// ===== 导出 =====
+function exportChat(){
+  if(conversationHistory.length===0){addSystemMessage('没有记录');return}
+  const s=getCurrentSession();
+  let text=`会话：${s.name}\n导出时间: ${new Date().toLocaleString()}\n${'='.repeat(40)}\n\n`;
+  text+=`【固定设定】\n${fixedSetting.value}\n\n`;
+  if(dynamicSetting.value)text+=`【动态设定】\n${dynamicSetting.value}\n\n`;
+  if(storySummary)text+=`【剧情摘要】\n${storySummary}\n\n`;
+  text+=`${'='.repeat(40)}\n\n`;
+  for(const m of conversationHistory)text+=`[${m.role==='user'?'用户':'AI'}] ${m.timestamp}\n${getMsgContent(m)}\n\n`;
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML=`<div style="background:#fff;border-radius:16px;padding:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong>对话记录（全选复制）</strong><button id="closeModalBtn" style="background:none;border:none;font-size:20px;cursor:pointer">✖</button></div>
+    <textarea id="exportTextArea" style="flex:1;min-height:350px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:none" readonly></textarea>
+    <button id="copyExportBtn" style="margin-top:10px;padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">📋 复制全部</button>
+  </div>`;
+  document.body.appendChild(modal);
+  const ta=$('exportTextArea');ta.value=text;
+  $('closeModalBtn').onclick=()=>modal.remove();
+  $('copyExportBtn').onclick=()=>{ta.select();ta.setSelectionRange(0,999999);try{document.execCommand('copy');alert('已复制')}catch(e){alert('请手动全选复制')}};
 }
 
-// ===== 新对话 =====
-function newConversation() {
-    if (!confirm('确定开新对话？当前记录会被清空（设定保留）。')) return;
-    conversationHistory = [];
-    storySummary = '';
-    storySummaryEl.value = '';
-    saveHistory();
-    localStorage.removeItem(K.summary);
-    messagesArea.innerHTML = '';
-    addSystemMessage('✨ 新对话已开始，设定已保留');
+// ===== 清空当前会话对话 =====
+function clearCurrentChat(){
+  if(!confirm('确定清空当前会话的对话？设定会保留。'))return;
+  conversationHistory=[];storySummary='';storySummaryEl.value='';
+  persistCurrentSession();saveSessions();
+  messagesArea.innerHTML='';
+  addSystemMessage('✨ 对话已清空，设定保留');
 }
 
 // ===== 保存 Key =====
-function saveApiKey() {
-    const key = apiKeyInput.value.trim();
-    if (key && key.startsWith('sk-')) {
-        currentApiKey = key;
-        localStorage.setItem(K.api, key);
-        apiKeyInput.value = '';
-        addSystemMessage('✅ API Key 已保存');
-    } else alert('请输入有效 Key (sk- 开头)');
+function saveApiKey(){
+  const k=apiKeyInput.value.trim();
+  if(k&&k.startsWith('sk-')){currentApiKey=k;localStorage.setItem(K.api,k);apiKeyInput.value='';addSystemMessage('✅ API Key 已保存')}
+  else alert('请输入有效 Key (sk- 开头)');
 }
 
 // ===== 背景 =====
-function applyBg() {
-    const color = bgColorPicker.value;
-    const url = bgImageUrl.value.trim();
-    if (url) {
-        document.body.style.background = `url('${url}') center/cover fixed no-repeat`;
-        localStorage.setItem(K.bg, JSON.stringify({ type: 'image', value: url }));
-    } else {
-        document.body.style.background = color;
-        localStorage.setItem(K.bg, JSON.stringify({ type: 'color', value: color }));
-    }
+function applyBg(){
+  const c=bgColorPicker.value,u=bgImageUrl.value.trim();
+  if(u){document.body.style.background=`url('${u}') center/cover fixed no-repeat`;localStorage.setItem(K.bg,JSON.stringify({type:'image',value:u}))}
+  else{document.body.style.background=c;localStorage.setItem(K.bg,JSON.stringify({type:'color',value:c}))}
 }
-function loadBg() {
-    const s = localStorage.getItem(K.bg);
-    if (!s) return;
-    try {
-        const bg = JSON.parse(s);
-        if (bg.type === 'image') {
-            document.body.style.background = `url('${bg.value}') center/cover fixed no-repeat`;
-            bgImageUrl.value = bg.value;
-        } else {
-            document.body.style.background = bg.value;
-            bgColorPicker.value = bg.value;
-        }
-    } catch(e) {}
+function loadBg(){
+  const s=localStorage.getItem(K.bg);if(!s)return;
+  try{const b=JSON.parse(s);
+    if(b.type==='image'){document.body.style.background=`url('${b.value}') center/cover fixed no-repeat`;bgImageUrl.value=b.value}
+    else{document.body.style.background=b.value;bgColorPicker.value=b.value}
+  }catch(e){}
 }
-function resetBg() {
-    document.body.style.background = '#f7f8fa';
-    bgColorPicker.value = '#f7f8fa';
-    bgImageUrl.value = '';
-    localStorage.removeItem(K.bg);
-}
+function resetBg(){document.body.style.background='#f7f8fa';bgColorPicker.value='#f7f8fa';bgImageUrl.value='';localStorage.removeItem(K.bg)}
 
 // ===== 初始化 =====
-function loadInitial() {
-    const k = localStorage.getItem(K.api);
-    if (k && k.startsWith('sk-')) currentApiKey = k;
+function loadInitial(){
+  const k=localStorage.getItem(K.api);
+  if(k&&k.startsWith('sk-'))currentApiKey=k;
 
-    fixedSetting.value = localStorage.getItem(K.fixed) || '';
-    dynamicSetting.value = localStorage.getItem(K.dynamic) || '';
-    storySummary = localStorage.getItem(K.summary) || '';
-    storySummaryEl.value = storySummary;
+  const ss=localStorage.getItem(K.sessions);
+  if(ss)try{sessions=JSON.parse(ss)}catch(e){sessions=[]}
+  if(!sessions.length)createSession('新对话 1',true);
+  const cur=localStorage.getItem(K.current);
+  currentSessionId=(cur&&sessions.find(x=>x.id===cur))?cur:sessions[0].id;
 
-    const m = localStorage.getItem(K.model);
-    if (m === 'deepseek-chat' || m === 'deepseek-reasoner') currentModel = m;
-    modelSelect.value = currentModel;
+  const m=localStorage.getItem(K.model);
+  if(m==='deepseek-chat'||m==='deepseek-reasoner')currentModel=m;
+  modelSelect.value=currentModel;
 
-    const t = localStorage.getItem(K.temp);
-    if (t !== null) { const v = parseFloat(t); if (!isNaN(v)) currentTemperature = v; }
-    tempSlider.value = currentTemperature;
-    tempValue.innerText = currentTemperature.toFixed(2);
+  const t=localStorage.getItem(K.temp);
+  if(t!==null){const v=parseFloat(t);if(!isNaN(v))currentTemperature=v}
+  tempSlider.value=currentTemperature;tempValue.innerText=currentTemperature.toFixed(2);
 
-    const e = localStorage.getItem(K.expert);
-    if (e === 'roleplay') { expertMode = 'roleplay'; roleplayBtn.classList.add('active'); }
+  if(localStorage.getItem(K.expert)==='roleplay'){expertMode='roleplay';roleplayBtn.classList.add('active')}
 
-    loadHistory();
-    loadBg();
-    if (conversationHistory.length === 0) {
-        addSystemMessage('🎭 欢迎使用。先在左侧填「固定设定」，再开始对话。');
-    } else {
-        renderAllMessages();
-    }
-    if (!currentApiKey) addSystemMessage('🔐 请先在左侧保存 API Key');
+  loadBg();renderSessionList();loadCurrentSession();
+  showSessionPage();  // 默认先显示会话列表页
+  if(!currentApiKey)addSystemMessage('🔐 请先在左侧保存 API Key');
 }
 
 // ===== 事件 =====
-mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
-saveKeyBtn.addEventListener('click', saveApiKey);
-clearChatBtn.addEventListener('click', newConversation);
-exportChatBtn.addEventListener('click', exportChat);
-sendBtn.addEventListener('click', sendMessage);
-userInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
-userInput.addEventListener('input', () => {
-    userInput.style.height = 'auto';
-    userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
-});
-modelSelect.addEventListener('change', (e) => {
-    currentModel = e.target.value;
-    localStorage.setItem(K.model, currentModel);
-    addSystemMessage('模型已切换: ' + currentModel);
-});
-tempSlider.addEventListener('input', (e) => {
-    currentTemperature = parseFloat(e.target.value);
-    tempValue.innerText = currentTemperature.toFixed(2);
-    localStorage.setItem(K.temp, currentTemperature.toString());
-});
-roleplayBtn.addEventListener('click', () => {
-    expertMode = expertMode === 'roleplay' ? null : 'roleplay';
-    roleplayBtn.classList.toggle('active', expertMode === 'roleplay');
-    localStorage.setItem(K.expert, expertMode || 'none');
-});
-normalBtn.addEventListener('click', () => {
-    expertMode = null;
-    roleplayBtn.classList.remove('active');
-    localStorage.setItem(K.expert, 'none');
-});
-fixedSetting.addEventListener('input', () => localStorage.setItem(K.fixed, fixedSetting.value));
-dynamicSetting.addEventListener('input', () => localStorage.setItem(K.dynamic, dynamicSetting.value));
-storySummaryEl.addEventListener('input', () => { storySummary = storySummaryEl.value; localStorage.setItem(K.summary, storySummary); });
-genSummaryBtn.addEventListener('click', generateSummary);
-applyBgBtn.addEventListener('click', applyBg);
-resetBgBtn.addEventListener('click', resetBg);
-bgColorPicker.addEventListener('input', applyBg);
+mobileMenuBtn.addEventListener('click',()=>sidebar.classList.toggle('open'));
+saveKeyBtn.addEventListener('click',saveApiKey);
+clearChatBtn.addEventListener('click',clearCurrentChat);
+exportChatBtn.addEventListener('click',exportChat);
+sendBtn.addEventListener('click',sendMessage);
+userInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
+userInput.addEventListener('input',()=>{userInput.style.height='auto';userInput.style.height=Math.min(userInput.scrollHeight,120)+'px'});
+modelSelect.addEventListener('change',e=>{currentModel=e.target.value;localStorage.setItem(K.model,currentModel);addSystemMessage('模型已切换: '+currentModel)});
+tempSlider.addEventListener('input',e=>{currentTemperature=parseFloat(e.target.value);tempValue.innerText=currentTemperature.toFixed(2);localStorage.setItem(K.temp,currentTemperature.toString())});
+roleplayBtn.addEventListener('click',()=>{expertMode=expertMode==='roleplay'?null:'roleplay';roleplayBtn.classList.toggle('active',expertMode==='roleplay');localStorage.setItem(K.expert,expertMode||'none')});
+normalBtn.addEventListener('click',()=>{expertMode=null;roleplayBtn.classList.remove('active');localStorage.setItem(K.expert,'none')});
+fixedSetting.addEventListener('input',()=>{persistCurrentSession();saveSessions()});
+dynamicSetting.addEventListener('input',()=>{persistCurrentSession();saveSessions()});
+storySummaryEl.addEventListener('input',()=>{storySummary=storySummaryEl.value;persistCurrentSession();saveSessions()});
+genSummaryBtn.addEventListener('click',generateSummary);
+applyBgBtn.addEventListener('click',applyBg);
+resetBgBtn.addEventListener('click',resetBg);
+bgColorPicker.addEventListener('input',applyBg);
 
 loadInitial();
 userInput.focus();
